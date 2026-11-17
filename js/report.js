@@ -1,12 +1,28 @@
-/* ================= СООБЩЕНИЯ ЖИТЕЛЕЙ: своя метка на карте + фото =================
-   Сайт открыт через `npm start` → метки и фото хранятся на сервере, их видят все.
-   GitHub Pages / просто файл → метки хранятся в браузере того, кто их добавил (демо). */
+/* ================= СООБЩЕНИЯ ЖИТЕЛЕЙ: своя метка + фото + проверка =================
+   1) Житель ставит метку → она «на проверке» ⏳ (полупрозрачная, не в статистике).
+   2) Её подтверждают 2 ДРУГИХ человека (свою подтвердить нельзя, дважды — тоже).
+   3) Потом ИИ проверяет сообщение → если одобрил, метка «выпрыгивает» на карту.
+   Работает через `npm start` (общий сервер). Без сервера метка видна только автору (демо). */
 (function () {
   var BB = window.BB, t = BBI.t, T = BBI.T, esc = BB.esc;
   var C = window.CATEGORIES, G = window.GROUPS, P = window.PROBLEMS;
   var map = BB.map, panel = document.getElementById('panel'), content = document.getElementById('panelContent');
   var $ = function (id) { return document.getElementById(id); };
-  var KEY = 'bb-reports-v1', serverMode = false, placing = false, temp = null, draft = null, banner = null;
+  var KEY = 'bb-reports-v1', NEED = 2, serverMode = false;
+  var placing = false, temp = null, draft = null, banner = null;
+  var pending = {}, openId = null;                                   // метки на проверке: id → { r, m, local }
+  var ready = function () { return document.body.classList.contains('app-ready'); };
+
+  /* Анонимный номер браузера — чтобы один человек не подтверждал дважды и не подтверждал свою метку */
+  BB.uid = (function () {
+    var id = '';
+    try { id = localStorage.getItem('bb-uid') || ''; } catch (e) { /* ок */ }
+    if (!/^[a-z0-9-]{8,64}$/i.test(id)) {
+      id = window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+      try { localStorage.setItem('bb-uid', id); } catch (e) { /* ок */ }
+    }
+    return id;
+  })();
 
   /* ---------- Хранилище ---------- */
   function loadLocal() { try { return JSON.parse(localStorage.getItem(KEY) || '[]') || []; } catch (e) { return []; } }
@@ -14,17 +30,139 @@
     var list = loadLocal(); list.push(r);
     try { localStorage.setItem(KEY, JSON.stringify(list)); return true; } catch (e) { return false; }
   }
-  loadLocal().forEach(function (r) { BB.addPlace(r); });
+  function isPublic(r) { return !r.review || r.review === 'approved'; }
+
+  /* Метка пришла (с сервера или из браузера): одобренная → на карту, на проверке → «призрак» */
+  function ingest(r) {
+    if (r.review === 'rejected') { removeGhost(r.id); return; }
+    if (isPublic(r)) {
+      if (pending[r.id]) popOut(r);
+      else if (!BB.byId[r.id]) BB.addPlace(r);
+      return;
+    }
+    if (pending[r.id]) { pending[r.id].r = r; refreshGhost(r.id); } else addGhost(r);
+  }
+  function sync() {
+    return fetch('/api/reports', { cache: 'no-store' })
+      .then(function (res) { if (!res.ok) throw new Error(res.status); return res.json(); })
+      .then(function (d) {
+        serverMode = true; NEED = d.need || NEED;
+        var seen = {};
+        (d.reports || []).forEach(function (r) { seen[r.id] = true; ingest(r); });
+        Object.keys(pending).forEach(function (id) { if (!seen[id] && !pending[id].local) removeGhost(id); });
+      });
+  }
+  loadLocal().forEach(function (r) { r.local = true; ingest(r); });
   if (location.protocol.indexOf('http') === 0) {
-    fetch('/api/reports').then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (d) { serverMode = true; (d.reports || []).forEach(function (r) { BB.addPlace(r); }); })
+    sync().then(function () { setInterval(function () { sync().catch(function () { /* сервер недоступен */ }); }, 8000); })
       .catch(function () { serverMode = false; });
   }
+
+  /* ---------- Метки на проверке («призраки») ---------- */
+  function ghostIcon(r) {
+    var n = (r.confirms || []).length;
+    return L.divIcon({ className: 'pin-wrap', iconSize: [44, 54], iconAnchor: [22, 48], tooltipAnchor: [0, -46],
+      html: '<div class="pin pin--pending" style="--c:#8b93a7"><span class="pin__pulse"></span><span class="pin__body"><span class="pin__icon">' +
+        C[r.category].icon + '</span></span><span class="pin__user">⏳</span><span class="pin__count">' + n + '/' + NEED + '</span></div>' });
+  }
+  function addGhost(r) {
+    var m = L.marker(BB_latlng(r), { icon: ghostIcon(r), zIndexOffset: -100 });
+    m.bindTooltip(esc(T(r.title)) + ' — ' + esc(t('pendingBadge')), { direction: 'top', className: 'pin-tip' });
+    m.on('click', function () { openPending(r.id); });
+    pending[r.id] = { r: r, m: m, local: !!r.local };
+    if (ready()) m.addTo(map);
+    document.dispatchEvent(new CustomEvent('bb:places'));
+  }
+  function refreshGhost(id) {
+    var p = pending[id]; if (!p) return;
+    p.m.setIcon(ghostIcon(p.r));
+    if (openId === id) renderPending(p.r);
+  }
+  function removeGhost(id) {
+    var p = pending[id]; if (!p) return;
+    map.removeLayer(p.m); delete pending[id];
+    if (openId === id) closePending();
+    document.dispatchEvent(new CustomEvent('bb:places'));
+  }
+  function popOut(r) {                                               // одобрено → настоящая метка «выпрыгивает»
+    var wasOpen = openId === r.id;
+    removeGhost(r.id);
+    r._pop = true;
+    BB.addPlace(r);
+    setTimeout(function () { delete r._pop; }, 2500);
+    celebrate();
+    BB.toast(t('approvedToast'));
+    if (wasOpen) BB.openPlace(r.id);
+  }
+  BB.pendingCount = function () { return Object.keys(pending).length; };
+
+  function openPending(id) {
+    var p = pending[id]; if (!p) return;
+    if (placing || draft) stopPlacing();
+    BB.closePlace();
+    openId = id;
+    renderPending(p.r);
+    panel.classList.add('is-open'); panel.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('panel-open');
+  }
+  function closePending() {
+    openId = null;
+    BB.hidePanel(); document.body.classList.remove('panel-open');
+  }
+  function renderPending(r) {
+    var n = (r.confirms || []).length, mine = r.uid && r.uid === BB.uid, did = (r.confirms || []).indexOf(BB.uid) >= 0;
+    var dots = '';
+    for (var i = 0; i < NEED; i++) dots += '<i' + (i < n ? ' class="is-on"' : '') + '></i>';
+    var action = !serverMode ? '<div class="review__note">' + esc(t('needServer')) + '</div>'
+      : mine ? '<div class="review__note">' + esc(t('yourReport', { need: NEED })) + '</div>'
+      : did ? '<div class="review__note is-ok">' + esc(t('youConfirmed', { n: Math.max(0, NEED - n) })) + '</div>'
+      : '<button type="button" class="review__btn" id="confirmBtn">' + esc(t('confirmBtn')) + '</button>';
+    var probs = (r.problems || []).map(function (k) { return '<li>' + (P[k] ? P[k].icon + ' ' + esc(T(P[k].label)) : esc(k)) + '</li>'; }).join('');
+    content.innerHTML =
+      (r.photo ? '<div class="ph"><img src="' + esc(r.photo) + '" alt=""></div>' : '') +
+      '<div class="pbody">' +
+        '<div class="rv" style="--i:0"><span class="tag tag--pending">' + esc(t('pendingBadge')) + '</span><h2>' + esc(T(r.title)) + '</h2></div>' +
+        '<div class="review rv" style="--i:1"><div class="review__dots">' + dots + '</div>' +
+          '<p>' + esc(t('pendingInfo', { n: n, need: NEED })) + '</p>' + action + '</div>' +
+        (probs ? '<div class="rv" style="--i:2"><div class="ptitle">' + esc(t('wrong')) + '</div><ul class="issues">' + probs + '</ul></div>' : '') +
+        (r.text ? '<div class="rv" style="--i:3"><div class="tip">' + esc(r.text) + '</div></div>' : '') +
+        '<div class="rv" style="--i:4"><div class="tags"><span class="tag">' + C[r.category].icon + ' ' + esc(T(C[r.category].label)) + '</span>' +
+          '<span class="tag">✍️ ' + esc(t('reportedBy', { name: r.author || t('anon') })) + '</span></div></div>' +
+      '</div>';
+    content.scrollTop = 0;
+  }
+
+  /* «✅ Подтверждаю» → сервер; на 2-м подтверждении сервер спрашивает ИИ */
+  content.addEventListener('click', function (e) {
+    var btn = e.target.closest('#confirmBtn');
+    if (!btn || !openId || !pending[openId]) return;
+    var id = openId, willCheck = (pending[id].r.confirms || []).length + 1 >= NEED, t0 = Date.now();
+    btn.disabled = true;
+    btn.textContent = willCheck ? t('aiChecking') : '…';
+    if (willCheck) btn.classList.add('is-checking');
+    fetch('/api/reports/' + encodeURIComponent(id) + '/confirm', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: BB.uid })
+    })
+      .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+      .then(function (x) {
+        setTimeout(function () {                                         // чуть-чуть показать «ИИ проверяет…»
+          if (!x.ok) {
+            var err = x.d && x.d.error;
+            BB.toast(t(err === 'own_report' ? 'ownReport' : err === 'already_confirmed' ? 'alreadyConfirmed' : 'confirmFail'));
+            refreshGhost(id); return;
+          }
+          var r = x.d.report;
+          if (r.review === 'rejected') { removeGhost(id); BB.toast(t('rejectedToast', { reason: T(r.ai && r.ai.reason) || '' })); return; }
+          ingest(r);
+        }, willCheck ? Math.max(0, 1600 - (Date.now() - t0)) : 0);
+      })
+      .catch(function () { BB.toast(t('confirmFail')); refreshGhost(id); });
+  });
 
   /* ---------- Режим «поставить метку» ---------- */
   function startPlacing() {
     if (placing) return;
-    BB.closePlace();
+    BB.closePlace(); openId = null;
     placing = true;
     document.body.classList.add('placing');
     banner = document.createElement('div');
@@ -45,7 +183,6 @@
     if (wasOpen) { BB.hidePanel(); document.body.classList.remove('panel-open'); }
   }
   function toArr(ll) { return [Number(ll.lat.toFixed(6)), Number(ll.lng.toFixed(6))]; }
-
   function setPin(latlng) {
     if (!temp) {
       temp = L.marker(latlng, {
@@ -70,7 +207,10 @@
       function () { BB.toast(t('geoFail')); },
       { enableHighAccuracy: true, timeout: 10000 });
   }
-  map.on('click', function (e) { if (placing) setPin(e.latlng); });
+  map.on('click', function (e) {
+    if (placing) setPin(e.latlng);
+    else if (openId) closePending();
+  });
 
   /* ---------- Форма ---------- */
   function chips(name, dict, type, checked) {
@@ -81,7 +221,6 @@
     }).join('');
   }
   function sec(i, key, html) { return '<div class="rsec rv" style="--i:' + i + '"><div class="ptitle">' + esc(t(key)) + '</div>' + html + '</div>'; }
-
   function openForm() {
     draft = { latlng: null, photo: '' };
     var sev = { bad: { icon: '🔴', label: t('sevBad') }, mid: { icon: '🟡', label: t('sevMid') }, good: { icon: '🟢', label: t('sevGood') } };
@@ -136,7 +275,6 @@
     Object.keys(window.I18N).forEach(function (L) { o[L] = window.I18N[L].userTitle.replace('{cat}', C[cat].label[L] || C[cat].label.ru); });
     return o;
   }
-
   content.addEventListener('submit', function (e) {
     if (e.target.id !== 'rform' || !draft) return;
     e.preventDefault();
@@ -153,29 +291,28 @@
       id: 'u-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), user: true,
       category: cat, status: status, problems: all('prob'), affects: affects, latlng: draft.latlng,
       title: $('rTitle').value.trim() || defaultTitle(cat), address: '', text: $('rText').value.trim(),
-      photo: draft.photo || '', author: author, checked: new Date().toISOString().slice(0, 10), comments: []
+      photo: draft.photo || '', author: author, checked: new Date().toISOString().slice(0, 10), comments: [],
+      review: 'pending', confirms: [], uid: BB.uid
     });
   });
-
   function submitReport(r) {
     var btn = content.querySelector('.rform__submit');
     if (btn) btn.disabled = true;
     var fail = function () { BB.toast(t('storageFull')); if (btn) btn.disabled = false; };
     var done = function (saved) {
       draft = null; stopPlacing();
-      BB.addPlace(saved);
-      BB.openPlace(saved.id);
-      BB.toast(t('added'));
-      celebrate();
+      ingest(saved);
+      openPending(saved.id);
+      BB.toast(t('sentForReview'));
     };
-    if (!serverMode) { if (saveLocal(r)) done(r); else fail(); return; }
+    if (!serverMode) { if (saveLocal(r)) { r.local = true; done(r); } else fail(); return; }
     fetch('/api/reports', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(r) })
       .then(function (res) { if (!res.ok) throw new Error(res.status); return res.json(); })
       .then(function (d) { done(d.report); })
-      .catch(function () { if (saveLocal(r)) done(r); else fail(); });
+      .catch(function () { if (saveLocal(r)) { r.local = true; done(r); } else fail(); });
   }
 
-  /* Конфетти, когда метка добавлена */
+  /* Конфетти, когда метку одобрили */
   function celebrate() {
     var box = document.createElement('div'), colors = ['#7c5cff', '#00b4ff', '#2ee6a6', '#ffb020', '#ff4d6d'];
     box.className = 'confetti';
@@ -191,10 +328,23 @@
 
   /* ---------- Связь с остальным сайтом ---------- */
   var openPlace = BB.openPlace;                       // открыть другое место = выйти из режима метки
-  BB.openPlace = function (id) { if (placing || draft) stopPlacing(); return openPlace(id); };
+  BB.openPlace = function (id) { if (placing || draft) stopPlacing(); openId = null; return openPlace(id); };
   $('reportFab').addEventListener('click', startPlacing);
-  $('panelClose').addEventListener('click', function () { if (placing || draft) stopPlacing(); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && (placing || draft)) stopPlacing(); });
-  document.addEventListener('bb:introstart', function () { if (placing || draft) stopPlacing(); });
-  document.addEventListener('bb:lang', function () { if (banner) banner.querySelector('span').textContent = t('placeHint'); });
+  $('panelClose').addEventListener('click', function () { if (placing || draft) stopPlacing(); if (openId) closePending(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (placing || draft) stopPlacing();
+    else if (openId) closePending();
+  });
+  document.addEventListener('bb:introstart', function () { if (placing || draft) stopPlacing(); if (openId) closePending(); });
+  document.addEventListener('bb:introdone', function () {
+    Object.keys(pending).forEach(function (id) { pending[id].m.addTo(map); });
+  });
+  document.addEventListener('bb:lang', function () {
+    if (banner) banner.querySelector('span').textContent = t('placeHint');
+    Object.keys(pending).forEach(function (id) {
+      pending[id].m.setTooltipContent(esc(T(pending[id].r.title)) + ' — ' + esc(t('pendingBadge')));
+    });
+    if (openId && pending[openId]) renderPending(pending[openId].r);
+  });
 })();

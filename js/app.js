@@ -58,7 +58,8 @@
 
   function makeIcon(loc, delay, extra) {
     var st = BB.effStatus(loc);
-    var cls = 'pin pin--' + st + (loc.user ? ' pin--user' : '') + (loc.id === state.activeId ? ' is-active' : '') + (extra ? ' ' + extra : '');
+    var cls = 'pin pin--' + st + (loc.user ? ' pin--user' : '') + (loc._pop ? ' is-pop' : '') +
+      (loc.id === state.activeId ? ' is-active' : '') + (extra ? ' ' + extra : '');
     var html = '<div class="' + cls + '" style="--c:' + S[st].color + ';--d:' + (delay || 0) + 's">' +
       '<span class="pin__pulse"></span><span class="pin__body"><span class="pin__icon">' + C[loc.category].icon + '</span></span>' +
       (loc.user ? '<span class="pin__user">👤</span>' : '') + '</div>';

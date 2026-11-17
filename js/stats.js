@@ -46,6 +46,7 @@
         '<div class="is-user"><b data-to="' + s.users + '">0</b><span>' + esc(t('statUsers')) + '</span></div>' +
         '<div><b data-to="' + s.vol + '">0</b><span>' + esc(t('statVol')) + '</span></div>' +
       '</div>' +
+      (BB.pendingCount && BB.pendingCount() ? '<p class="spanel__pending">⏳ ' + esc(t('statPending')) + ': ' + BB.pendingCount() + '</p>' : '') +
       '<div class="ptitle">' + esc(t('byProblem')) + '</div><p class="spanel__hint">' + esc(t('statsHint')) + '</p>' +
       '<div class="spanel__rows">' + s.rows.map(function (r, i) {
         return '<button type="button" class="srow' + (r.n ? '' : ' is-zero') + '" data-p="' + r.key + '" style="--i:' + i + ';--w:' + Math.round(r.n / max * 100) + '%">' +

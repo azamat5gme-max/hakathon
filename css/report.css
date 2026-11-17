@@ -141,3 +141,48 @@ body.placing .leaflet-container { cursor: crosshair; }
   .spanel__box { width: 100%; max-height: 88vh; border-radius: 22px 22px 0 0; }
   .srow, .sgroup { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) 26px; }
 }
+
+/* ================= Проверка меток: «призраки» ⏳ → подтверждения → ИИ → метка выпрыгивает ================= */
+.pin.pin--pending { opacity: .8; animation: pinDrop .7s var(--ease) both, ghostBob 3s 1s ease-in-out infinite; }
+@keyframes ghostBob { 50% { transform: translateY(-4px); } }
+.pin--pending .pin__body {
+  background: rgba(139, 147, 167, .45); border: 2px dashed rgba(255, 255, 255, .85); filter: grayscale(.3);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .45);
+}
+.pin--pending .pin__pulse { opacity: .6; animation-duration: 2.8s; }
+.pin__count {
+  position: absolute; left: 50%; top: -22px; transform: translateX(-50%); padding: 2px 7px; border-radius: 8px;
+  font: 800 10px "Manrope", sans-serif; color: #0b0e17; background: #ffb020; white-space: nowrap; box-shadow: 0 2px 8px rgba(0, 0, 0, .4);
+}
+.pin.is-pop .pin__body { animation: popGlow 1.8s ease-out; }
+@keyframes popGlow {
+  0% { box-shadow: inset 0 0 0 3px #fff, 0 0 0 0 rgba(46, 230, 166, .9); }
+  40% { box-shadow: inset 0 0 0 3px #fff, 0 0 0 22px rgba(46, 230, 166, 0), 0 0 46px 14px var(--c); }
+  100% { box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .9), 0 8px 22px rgba(0, 0, 0, .5); }
+}
+.pin.is-pop::before {
+  content: ""; position: absolute; left: 50%; top: 20px; width: 130px; height: 130px; margin: -65px 0 0 -65px;
+  border-radius: 50%; border: 3px solid var(--c); pointer-events: none; animation: radar 1.1s ease-out 3;
+}
+
+.tag.tag--pending { display: inline-block; margin-bottom: 8px; color: #0b0e17; background: #ffb020; border-color: transparent; }
+.tag.tag--ok { color: #0b0e17; background: var(--good); border-color: transparent; }
+.review { margin: 12px 0 4px; padding: 14px; border-radius: 14px; background: rgba(255, 176, 32, .08); border: 1px solid rgba(255, 176, 32, .35); }
+.review p { margin: 8px 0 12px; font-size: 14px; line-height: 1.5; }
+.review__dots { display: flex; gap: 6px; }
+.review__dots i { width: 34px; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .15); }
+.review__dots i.is-on { background: #ffb020; box-shadow: 0 0 10px rgba(255, 176, 32, .6); animation: popIn .5s var(--ease) both; }
+.review__btn {
+  width: 100%; cursor: pointer; padding: 13px; border: 0; border-radius: 12px; font-weight: 800; font-size: 15px; color: #0b0e17;
+  background: linear-gradient(135deg, #ffb020, #ffd166); transition: transform .2s var(--ease), filter .2s;
+}
+.review__btn:hover { transform: translateY(-2px); filter: brightness(1.06); }
+.review__btn:disabled { cursor: wait; }
+.review__btn.is-checking {
+  color: #fff; background: linear-gradient(90deg, #7c5cff, #00b4ff, #7c5cff); background-size: 200% 100%;
+  animation: shimmer 1.1s linear infinite;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+.review__note { padding: 10px 12px; border-radius: 10px; font-size: 13px; line-height: 1.5; color: var(--muted); background: rgba(255, 255, 255, .04); }
+.review__note.is-ok { color: var(--good); }
+.spanel__pending { margin: 6px 0 8px; font-size: 13px; font-weight: 700; color: #ffb020; }

@@ -67,7 +67,9 @@
         blk('<div class="tags">' + (loc.user ? '<span class="tag tag--user">' + esc(t('userBadge')) + '</span>' : '') +
           '<span class="tag">' + C[loc.category].icon + ' ' + esc(T(C[loc.category].label)) + '</span>' +
           '<span class="tag">🗓 ' + esc(t('checked', { d: fmtDate(loc.checked) })) + '</span>' +
-          (loc.user ? '<span class="tag">✍️ ' + esc(t('reportedBy', { name: loc.author || t('anon') })) + '</span>' : '') + '</div>') +
+          (loc.user ? '<span class="tag">✍️ ' + esc(t('reportedBy', { name: loc.author || t('anon') })) + '</span>' : '') +
+          (loc.user && loc.review === 'approved' ? '<span class="tag tag--ok">' + esc(t('approvedBy', { n: (loc.confirms || []).length })) +
+            ' · ' + esc(t(loc.ai && loc.ai.by === 'ai' ? 'aiBy' : 'rulesBy')) + '</span>' : '') + '</div>') +
         (issues.length ? blk('<div class="ptitle">' + esc(t('wrong')) + '</div><ul class="issues">' + issues.map(li).join('') + '</ul>') : '') +
         (good.length ? blk('<div class="ptitle">' + esc(t('goodTitle')) + '</div><ul class="issues issues--ok">' + good.map(li).join('') + '</ul>') : '') +
         blk('<div class="ptitle">' + esc(t('barrierFor')) + '</div><div class="affects">' + affects + '</div>') +
