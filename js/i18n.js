@@ -45,7 +45,7 @@ window.I18N = {
       '!> пандусы на входах: НЕ НАЙДЕНО', '!> доступ для колясок: ОТКАЗАНО', '!> вердикт: сайт ПЛОХОЙ — он забыл про людей', '> взлом системы... ██████████ 100%'],
     hackSub: 'Этот сайт взломан, потому что он был <b class="hack__bad">плохим</b>.',
     hackWhy: 'Он не замечал тех, кому трудно ходить по городу: людей на колясках, пожилых и мам с колясками. Мы это исправили — теперь город <b>для всех</b>.',
-    skip: 'Пропустить ⏭'
+    skip: 'Пропустить ⏭', hackBtn: '☠ Взломать'
   },
 
   ky: {
@@ -87,7 +87,7 @@ window.I18N = {
       '!> кире бериштеги пандустар: ТАБЫЛГАН ЖОК', '!> арабачалар үчүн кирүү: ЧЕТКЕ КАГЫЛДЫ', '!> өкүм: сайт ЖАМАН — ал адамдарды унуткан', '> системаны бузуу... ██████████ 100%'],
     hackSub: 'Бул сайт бузулду, анткени ал <b class="hack__bad">жаман</b> болчу.',
     hackWhy: 'Ал шаарда жүрүү кыйын болгондорду байкаган эмес: майыптар арабачасындагыларды, улгайгандарды жана бала арабасы менен жүргөн апаларды. Биз муну оңдодук — эми шаар <b>баары үчүн</b>.',
-    skip: 'Өткөрүп жиберүү ⏭'
+    skip: 'Өткөрүп жиберүү ⏭', hackBtn: '☠ Бузуп кирүү'
   },
 
   en: {
@@ -128,7 +128,7 @@ window.I18N = {
       '!> ramps at entrances: NOT FOUND', '!> wheelchair access: DENIED', '!> verdict: the site is BAD — it forgot about people', '> hacking the system... ██████████ 100%'],
     hackSub: 'This site was hacked because it was <b class="hack__bad">bad</b>.',
     hackWhy: 'It ignored the people who find it hard to get around the city: wheelchair users, elderly people and parents with strollers. We fixed that — now the city is <b>for everyone</b>.',
-    skip: 'Skip ⏭'
+    skip: 'Skip ⏭', hackBtn: '☠ Hack it'
   }
 };
 

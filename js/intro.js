@@ -4,7 +4,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var intro = $('intro'), term = $('hackTerm'), skipBtn = $('introSkip');
   var langScreen = $('langScreen'), langTitle = $('langTitle'), langBtns = $('langBtns');
-  var timers = [], typer = null, finished = true, titleTimer = null, picking = false;
+  var timers = [], typer = null, finished = true, titleTimer = null, picking = false, waiting = false;
   var SUB = { ky: 'Сайт кыргыз тилинде', ru: 'Сайт на русском языке', en: 'Website in English' };
 
   function issuesCount() {
@@ -47,6 +47,7 @@
   function finish() {
     if (finished) return;
     finished = true;
+    waiting = false;
     clearAll();
     intro.classList.add('is-out');
     document.body.classList.add('app-ready');
@@ -63,10 +64,16 @@
     term.innerHTML = '';
     restartAnim(intro.querySelector('.fake'));
     restartAnim(intro.querySelector('.fake__loader span'));
+    waiting = true;                                                        // обычный сайт ждёт кнопку «Взломать»
+  }
 
-    at(4300, function () { intro.classList.add('is-alert'); });           // 1. обычный сайт… тревога
-    at(5400, function () { intro.classList.add('is-glitch'); });          // 2. сайт ломается
-    at(6500, function () {                                                 // 3. экран взлома
+  /* Взлом: кнопка «☠ Взломать» или клавиша H / Enter / пробел / → / PageDown (кликер для презентаций) */
+  function hack() {
+    if (!waiting || finished) return;
+    waiting = false;
+    intro.classList.add('is-alert');                                       // 1. тревога
+    at(1100, function () { intro.classList.add('is-glitch'); });          // 2. сайт ломается
+    at(2200, function () {                                                 // 3. экран взлома
       intro.classList.remove('is-glitch');
       intro.classList.add('is-hacked');
       type(lines(), function () {
@@ -117,12 +124,17 @@
     setTimeout(function () { langScreen.classList.add('is-hidden'); }, 850);
   }
 
+  var HACK_KEYS = ['h', 'H', 'р', 'Р', 'Enter', ' ', 'ArrowRight', 'PageDown'];
   skipBtn.addEventListener('click', finish);
+  document.getElementById('introHack').addEventListener('click', hack);
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !finished) finish();
+    if (finished) return;
+    if (e.key === 'Escape') { finish(); return; }
+    var langOpen = !langScreen.classList.contains('is-hidden') && !langScreen.classList.contains('is-out');
+    if (waiting && !langOpen && HACK_KEYS.indexOf(e.key) >= 0) { e.preventDefault(); hack(); }
   });
 
-  window.BBIntro = { play: play, skip: finish, chooseLang: function () { showLang(null); } };
+  window.BBIntro = { play: play, hack: hack, skip: finish, chooseLang: function () { showLang(null); } };
 
   document.addEventListener('DOMContentLoaded', function () {
     if (/[?&]nointro\b/.test(location.search)) {
