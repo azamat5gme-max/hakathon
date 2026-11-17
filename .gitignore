@@ -1,2 +1,5 @@
 # Архив для отправки — в репозитории не нужен (GitHub сам даёт «Download ZIP»)
 bez-barierov.zip
+
+# Библиотеки — ставятся командой npm install
+node_modules/
