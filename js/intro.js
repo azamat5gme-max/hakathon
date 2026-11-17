@@ -64,10 +64,10 @@
     term.innerHTML = '';
     restartAnim(intro.querySelector('.fake'));
     restartAnim(intro.querySelector('.fake__loader span'));
-    waiting = true;                                                        // обычный сайт ждёт кнопку «Взломать»
+    waiting = true;                                                        // обычный сайт ждёт кнопку «Следующий слайд»
   }
 
-  /* Взлом: кнопка «☠ Взломать» или клавиша H / Enter / пробел / → / PageDown (кликер для презентаций) */
+  /* Взлом: кнопка «Следующий слайд ›» или клавиша H / Enter / пробел / → / PageDown (кликер для презентаций) */
   function hack() {
     if (!waiting || finished) return;
     waiting = false;

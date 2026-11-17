@@ -137,19 +137,14 @@
 }
 .intro__skip:hover { transform: translateY(-2px); background: rgba(15, 18, 28, .92); }
 
-/* ---------- Кнопка «Взломать»: сайт ждёт, пока её нажмут ---------- */
+/* ---------- Кнопка «Следующий слайд»: обычный сайт ждёт, пока её нажмут (а потом — взлом) ---------- */
 .intro__hack {
   position: absolute; left: 50%; bottom: 22px; z-index: 2; cursor: pointer; white-space: nowrap;
-  font: 800 15px "JetBrains Mono", Consolas, monospace; letter-spacing: .08em; text-transform: uppercase;
-  padding: 13px 26px; border-radius: 999px; color: #fff; background: #12060a; border: 2px solid #ff2e63;
-  transform: translateX(-50%); animation: hackPulse 1.6s ease-out infinite;
-  transition: transform .25s cubic-bezier(.2, .9, .3, 1.25), background .2s, opacity .3s;
+  font: 600 15px Arial, sans-serif; padding: 12px 24px; border-radius: 8px;
+  color: #fff; background: #1f4e8c; border: 1px solid #173d6e; box-shadow: 0 4px 14px rgba(31, 78, 140, .35);
+  transform: translateX(-50%); transition: transform .2s ease, background .2s, opacity .3s;
 }
-.intro__hack:hover, .intro__hack:focus-visible { transform: translateX(-50%) scale(1.07); background: #ff2e63; outline: none; }
-@keyframes hackPulse {
-  0% { box-shadow: 0 0 0 0 rgba(255, 46, 99, .6), 0 0 24px rgba(255, 46, 99, .45); }
-  100% { box-shadow: 0 0 0 18px rgba(255, 46, 99, 0), 0 0 24px rgba(255, 46, 99, .45); }
-}
+.intro__hack:hover, .intro__hack:focus-visible { transform: translateX(-50%) translateY(-2px); background: #2a62ad; outline: none; }
 .intro.is-alert .intro__hack, .intro.is-hacked .intro__hack {
   opacity: 0; pointer-events: none; transform: translateX(-50%) scale(.5);
 }
