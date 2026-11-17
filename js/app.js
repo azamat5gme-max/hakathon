@@ -6,12 +6,22 @@
   var $ = function (id) { return document.getElementById(id); };
   var byId = {}; LOC.forEach(function (l) { byId[l.id] = l; });
   var markers = {}, firstList = true;
-  var state = { cats: new Set(Object.keys(C)), statuses: new Set(Object.keys(S)), group: null, activeId: null };
+  var P = window.PROBLEMS || {};
+  var state = { cats: new Set(Object.keys(C)), statuses: new Set(Object.keys(S)), group: null, problem: null, activeId: null };
   var isMobile = function () { return window.matchMedia('(max-width: 760px)').matches; };
 
   BB.byId = byId;
-  BB.issues = function (loc) { return T(loc.issues) || []; };
-  BB.good = function (loc) { return T(loc.good) || []; };
+  BB.problems = function (loc) { return loc.problems || []; };
+  /* Что мешает / что хорошо. У сообщений жителей — из выбранных типов проблем + их текста */
+  BB.issues = function (loc) {
+    if (!loc.user) return T(loc.issues) || [];
+    return BB.problems(loc).map(function (p) { return P[p] ? T(P[p].label) : p; })
+      .concat(loc.status !== 'good' && loc.text ? [loc.text] : []);
+  };
+  BB.good = function (loc) {
+    if (!loc.user) return T(loc.good) || [];
+    return loc.status === 'good' && loc.text ? [loc.text] : [];
+  };
   BB.esc = function (s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
@@ -48,21 +58,57 @@
 
   function makeIcon(loc, delay, extra) {
     var st = BB.effStatus(loc);
-    var cls = 'pin pin--' + st + (loc.id === state.activeId ? ' is-active' : '') + (extra ? ' ' + extra : '');
+    var cls = 'pin pin--' + st + (loc.user ? ' pin--user' : '') + (loc.id === state.activeId ? ' is-active' : '') + (extra ? ' ' + extra : '');
     var html = '<div class="' + cls + '" style="--c:' + S[st].color + ';--d:' + (delay || 0) + 's">' +
-      '<span class="pin__pulse"></span><span class="pin__body"><span class="pin__icon">' + C[loc.category].icon + '</span></span></div>';
+      '<span class="pin__pulse"></span><span class="pin__body"><span class="pin__icon">' + C[loc.category].icon + '</span></span>' +
+      (loc.user ? '<span class="pin__user">👤</span>' : '') + '</div>';
     return L.divIcon({ className: 'pin-wrap', html: html, iconSize: [44, 54], iconAnchor: [22, 48], tooltipAnchor: [0, -46] });
   }
-  function isVisible(loc) { return state.cats.has(loc.category) && state.statuses.has(BB.effStatus(loc)); }
+  function isVisible(loc) {
+    return state.cats.has(loc.category) && state.statuses.has(BB.effStatus(loc)) &&
+      (!state.problem || BB.problems(loc).indexOf(state.problem) >= 0);
+  }
+
+  function createMarker(loc, delay) {
+    var m = markers[loc.id] = L.marker(BB_latlng(loc), { icon: makeIcon(loc, delay), riseOnHover: true });
+    m.bindTooltip(BB.esc(T(loc.title)), { direction: 'top', className: 'pin-tip' });
+    m.on('click', function () { BB.openPlace(loc.id); });
+    return m;
+  }
+
+  /* Новая точка (сообщение жителя): на карту с анимацией, в список и счётчики */
+  BB.addPlace = function (loc) {
+    if (byId[loc.id]) return;
+    byId[loc.id] = loc;
+    if (LOC.indexOf(loc) < 0) LOC.push(loc);
+    document.dispatchEvent(new CustomEvent('bb:places'));
+    if (!document.body.classList.contains('app-ready') || markers[loc.id]) return; // иначе появится вместе со всеми
+    var m = createMarker(loc, 0.1);
+    m._bbHidden = !isVisible(loc);
+    if (!m._bbHidden) m.addTo(map);
+    renderList(); updateStats(false);
+  };
+
+  /* Фильтр «показать только места с этой проблемой» (из статистики и бота) */
+  BB.setProblem = function (p) {
+    state.problem = P[p] ? p : null;
+    if (state.problem) { state.cats = new Set(Object.keys(C)); state.statuses = new Set(Object.keys(S)); }
+    renderChips(); applyFilters();
+    if (!state.problem) return;
+    BB.toast(P[p].icon + ' ' + t('showing', { label: T(P[p].label) }));
+    var pts = LOC.filter(isVisible).map(BB_latlng);
+    if (pts.length) {
+      var mob = isMobile();
+      map.flyToBounds(pts, { paddingTopLeft: mob ? [30, 150] : [360, 110], paddingBottomRight: mob ? [30, 120] : [70, 70], maxZoom: 17, duration: 1 });
+    }
+  };
 
   function dropMarkers() {
     var i = 0;
     LOC.forEach(function (loc) {
       var delay = 0.45 + (i++) * 0.11, m = markers[loc.id];
       if (!m) {
-        m = markers[loc.id] = L.marker(BB_latlng(loc), { icon: makeIcon(loc, delay), riseOnHover: true });
-        m.bindTooltip(BB.esc(T(loc.title)), { direction: 'top', className: 'pin-tip' });
-        m.on('click', function () { BB.openPlace(loc.id); });
+        m = createMarker(loc, delay);
       } else {
         m.setIcon(makeIcon(loc, delay));
       }
@@ -100,6 +146,12 @@
   function renderChips() {
     var cat = $('catChips'), grp = $('groupChips'), leg = $('legend');
     cat.innerHTML = ''; grp.innerHTML = ''; leg.innerHTML = '';
+    if (state.problem) {                                                   // активный фильтр по проблеме — с крестиком
+      var pc = chip(P[state.problem].icon + ' ' + BB.esc(t('showing', { label: T(P[state.problem].label) })) + ' ✕', true,
+        function () { BB.setProblem(null); });
+      pc.classList.add('chip--problem');
+      cat.appendChild(pc);
+    }
     Object.keys(C).forEach(function (k) {
       cat.appendChild(chip(C[k].icon + ' ' + BB.esc(T(C[k].label)), state.cats.has(k), function () {
         state.cats.has(k) ? state.cats.delete(k) : state.cats.add(k);

@@ -62,10 +62,12 @@
       '<div class="ph" style="--c:' + color + '">' + photo +
         '<span class="ph__status" style="--c:' + color + '">' + esc(T(S[st].label)) + '</span></div>' +
       '<div class="pbody">' +
-        blk('<h2>' + esc(title) + '</h2><div class="addr"><span>📍 ' + esc(T(loc.address)) + '</span>' +
+        blk('<h2>' + esc(title) + '</h2><div class="addr">' + (T(loc.address) ? '<span>📍 ' + esc(T(loc.address)) + '</span>' : '') +
           '<a href="https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lng + '#map=18/' + lat + '/' + lng + '" target="_blank" rel="noopener">' + esc(t('openMaps')) + '</a></div>') +
-        blk('<div class="tags"><span class="tag">' + C[loc.category].icon + ' ' + esc(T(C[loc.category].label)) + '</span>' +
-          '<span class="tag">🗓 ' + esc(t('checked', { d: fmtDate(loc.checked) })) + '</span></div>') +
+        blk('<div class="tags">' + (loc.user ? '<span class="tag tag--user">' + esc(t('userBadge')) + '</span>' : '') +
+          '<span class="tag">' + C[loc.category].icon + ' ' + esc(T(C[loc.category].label)) + '</span>' +
+          '<span class="tag">🗓 ' + esc(t('checked', { d: fmtDate(loc.checked) })) + '</span>' +
+          (loc.user ? '<span class="tag">✍️ ' + esc(t('reportedBy', { name: loc.author || t('anon') })) + '</span>' : '') + '</div>') +
         (issues.length ? blk('<div class="ptitle">' + esc(t('wrong')) + '</div><ul class="issues">' + issues.map(li).join('') + '</ul>') : '') +
         (good.length ? blk('<div class="ptitle">' + esc(t('goodTitle')) + '</div><ul class="issues issues--ok">' + good.map(li).join('') + '</ul>') : '') +
         blk('<div class="ptitle">' + esc(t('barrierFor')) + '</div><div class="affects">' + affects + '</div>') +

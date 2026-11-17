@@ -216,9 +216,46 @@
     return { text: lines.join('\n'), places: ids };
   }
 
+  /* ---------- Статистика сообщений по типам проблем ---------- */
+  var PROB_RX = [
+    ['steepRamp', /(крут|тик пандус|steep)/],
+    ['noRamp', /(пандус|подъ[её]м|съезд|ramp|lift|көтөргүч)/],
+    ['highCurb', /(бордюр|curb|kerb)/],
+    ['stairsOnly', /(лестниц|ступен|тепкич|stair|steps)/],
+    ['narrow', /(узк|калитк|(^|\s)тар\s|narrow|эшик|door)/],
+    ['badSurface', /((^|\s)ям|покрыти|асфальт|гравий|чуңкур|pothole|surface|gravel)/],
+    ['noHandrail', /(поруч|тутка|handrail|railing)/],
+    ['noBench', /(скамей|лавочк|навес|отургуч|күнкалкан|bench|shelter)/],
+    ['noLight', /(освещ|темн|жарык|light|dark)/],
+    ['blocked', /(заставл|загорож|перекрыт|тосул|blocked)/]
+  ];
+  function detectProblem(s) {
+    for (var i = 0; i < PROB_RX.length; i++) if (PROB_RX[i][1].test(s)) return PROB_RX[i][0];
+    return null;
+  }
+  function statsAnswer(prob) {
+    var st = BB.stats(), P = window.PROBLEMS;
+    if (prob) {
+      var r = st.rows.filter(function (x) { return x.key === prob; })[0], label = T(P[prob].label);
+      if (!r || !r.n) return { text: t('botStatNone', { label: label }) };
+      if (BB.setProblem) BB.setProblem(prob);
+      return { text: t('botStatOne', { icon: P[prob].icon, label: label, n: r.n, v: r.v, u: r.u }) + '\n' + t('botStatMore'), places: r.ids };
+    }
+    var lines = [t('botStatHead', { n: st.barriers, u: st.users })];
+    st.rows.filter(function (x) { return x.n; }).slice(0, 5).forEach(function (x) {
+      lines.push('• ' + P[x.key].icon + ' ' + T(P[x.key].label) + ' — ' + x.n);
+    });
+    return { text: lines.join('\n') };
+  }
+
   function localAnswer(raw) {
     var s = norm(raw), cat = detectCat(s), group = detectGroup(s) || ctx.group;
     if (/^(привет|здравств|салам|саламатсыз|добр(ый|ое)|hello|hi\b|hey\b)/.test(s)) return { text: t('greet') };
+    var prob = detectProblem(s);                                             // «сколько жалоб на отсутствие пандусов?»
+    if (/(сколько|статист|количеств|канча|how many|statistic|stats|count|number of)/.test(s) ||
+        (prob && /(жалоб|сообщен|репорт|reports|complain|билдирүү|арыз)/.test(s))) return statsAnswer(prob);
+    if (/(сообщить о|сообщить про|добавить (метк|точк|мест)|отметить|поставить метк|report a|add a (pin|place)|how (do|can) i report|белги|кабарла)/.test(s))
+      return { text: t('howtoPin') };                                        // как поставить свою метку
     if (/(отзыв|коммент|сообщить|добавить|написать|фото|пикир|калтыр|review|comment|report|feedback|photo)/.test(s)) return { text: t('howto') };
     if (/(что (это|за сайт)|о проекте|зачем|кто вы|кто ты|бул эмне|долбоор|кимсиң|what is this|about (the )?project|who are you)/.test(s)) return { text: t('about') };
     if (/(спасибо|благодар|рахмат|ыракмат|thank)/.test(s)) return { text: t('thanks') };

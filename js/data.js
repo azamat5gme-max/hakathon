@@ -47,7 +47,7 @@ window.COMMENT_TYPES = {
 
 window.LOCATIONS = [
   {
-    id: 'stop-market', category: 'bus', status: 'bad', offset: [160, -430], photo: '',
+    id: 'stop-market', category: 'bus', status: 'bad', problems: ['highCurb', 'noBench', 'badSurface'], offset: [160, -430], photo: '',
     title: { ru: 'Остановка «Центральный рынок»', ky: '«Борбордук базар» аялдамасы', en: '“Central Market” bus stop' },
     address: { ru: 'ул. Примерная, 12 (пример)', ky: 'Мисал көч., 12 (мисал)', en: '12 Example St. (example)' },
     issues: {
@@ -69,7 +69,7 @@ window.LOCATIONS = [
     ]
   },
   {
-    id: 'stop-school', category: 'bus', status: 'mid', offset: [-280, 190], photo: '',
+    id: 'stop-school', category: 'bus', status: 'mid', problems: ['narrow', 'other'], offset: [-280, 190], photo: '',
     title: { ru: 'Остановка «Школа №5»', ky: '«№5 мектеп» аялдамасы', en: '“School No. 5” bus stop' },
     address: { ru: 'пр. Победы, 40 (пример)', ky: 'Жеңиш пр., 40 (мисал)', en: '40 Victory Ave. (example)' },
     issues: {
@@ -85,7 +85,7 @@ window.LOCATIONS = [
     ]
   },
   {
-    id: 'stop-clinic', category: 'bus', status: 'good', offset: [390, 310], photo: '',
+    id: 'stop-clinic', category: 'bus', status: 'good', problems: [], offset: [390, 310], photo: '',
     title: { ru: 'Остановка «Поликлиника»', ky: '«Поликлиника» аялдамасы', en: '“Clinic” bus stop' },
     address: { ru: 'ул. Садовая, 3 (пример)', ky: 'Бак көч., 3 (мисал)', en: '3 Garden St. (example)' },
     issues: [],
@@ -101,7 +101,7 @@ window.LOCATIONS = [
     ]
   },
   {
-    id: 'park-central', category: 'park', status: 'mid', offset: [-60, -150], photo: '',
+    id: 'park-central', category: 'park', status: 'mid', problems: ['stairsOnly', 'badSurface'], offset: [-60, -150], photo: '',
     title: { ru: 'Центральный парк — вход с ул. Примерной', ky: 'Борбордук парк — Мисал көчөсүнөн кирүү', en: 'Central Park — Example St. entrance' },
     address: { ru: 'ул. Примерная, 1 (пример)', ky: 'Мисал көч., 1 (мисал)', en: '1 Example St. (example)' },
     issues: {
@@ -122,7 +122,7 @@ window.LOCATIONS = [
     ]
   },
   {
-    id: 'park-yard', category: 'park', status: 'bad', offset: [520, -180], photo: '',
+    id: 'park-yard', category: 'park', status: 'bad', problems: ['noRamp', 'narrow', 'noBench'], offset: [520, -180], photo: '',
     title: { ru: 'Детская площадка во дворе', ky: 'Короодогу балдар аянтчасы', en: 'Playground in the courtyard' },
     address: { ru: 'ул. Лесная, 15, во дворе (пример)', ky: 'Токой көч., 15, короодо (мисал)', en: '15 Forest St., courtyard (example)' },
     issues: {
@@ -136,7 +136,7 @@ window.LOCATIONS = [
     comments: []
   },
   {
-    id: 'gov-admin', category: 'gov', status: 'bad', offset: [40, 120], photo: '',
+    id: 'gov-admin', category: 'gov', status: 'bad', problems: ['noRamp', 'stairsOnly', 'other'], offset: [40, 120], photo: '',
     title: { ru: 'Районная администрация', ky: 'Райондук администрация', en: 'District administration' },
     address: { ru: 'пл. Центральная, 1 (пример)', ky: 'Борбордук аянт, 1 (мисал)', en: '1 Central Sq. (example)' },
     issues: {
@@ -158,7 +158,7 @@ window.LOCATIONS = [
     ]
   },
   {
-    id: 'gov-services', category: 'gov', status: 'good', offset: [260, 520], photo: '',
+    id: 'gov-services', category: 'gov', status: 'good', problems: [], offset: [260, 520], photo: '',
     title: { ru: 'Центр госуслуг', ky: 'Мамлекеттик кызматтар борбору', en: 'Public Services Center' },
     address: { ru: 'ул. Садовая, 21 (пример)', ky: 'Бак көч., 21 (мисал)', en: '21 Garden St. (example)' },
     issues: [],
@@ -174,7 +174,7 @@ window.LOCATIONS = [
     ]
   },
   {
-    id: 'gov-clinic', category: 'gov', status: 'mid', offset: [430, 360], photo: '',
+    id: 'gov-clinic', category: 'gov', status: 'mid', problems: ['steepRamp', 'noHandrail'], offset: [430, 360], photo: '',
     title: { ru: 'Поликлиника №3', ky: '№3 поликлиника', en: 'Clinic No. 3' },
     address: { ru: 'ул. Садовая, 5 (пример)', ky: 'Бак көч., 5 (мисал)', en: '5 Garden St. (example)' },
     issues: {
@@ -190,7 +190,7 @@ window.LOCATIONS = [
     ]
   },
   {
-    id: 'pub-underpass', category: 'public', status: 'bad', offset: [210, -330], photo: '',
+    id: 'pub-underpass', category: 'public', status: 'bad', problems: ['stairsOnly', 'noHandrail', 'noLight'], offset: [210, -330], photo: '',
     title: { ru: 'Подземный переход у рынка', ky: 'Базардын жанындагы жер алдындагы өтмөк', en: 'Underpass by the market' },
     address: { ru: 'перекрёсток ул. Примерной и пр. Победы (пример)', ky: 'Мисал көч. менен Жеңиш пр. кесилиши (мисал)', en: 'Example St. & Victory Ave. crossing (example)' },
     issues: {
@@ -211,7 +211,7 @@ window.LOCATIONS = [
     ]
   },
   {
-    id: 'pub-mall', category: 'public', status: 'good', offset: [-380, -360], photo: '',
+    id: 'pub-mall', category: 'public', status: 'good', problems: [], offset: [-380, -360], photo: '',
     title: { ru: 'Торговый центр «Сити»', ky: '«Сити» соода борбору', en: '“City” shopping mall' },
     address: { ru: 'пр. Победы, 77 (пример)', ky: 'Жеңиш пр., 77 (мисал)', en: '77 Victory Ave. (example)' },
     issues: [],
@@ -225,7 +225,7 @@ window.LOCATIONS = [
     comments: []
   },
   {
-    id: 'pub-post', category: 'public', status: 'mid', offset: [-200, 430], photo: '',
+    id: 'pub-post', category: 'public', status: 'mid', problems: ['blocked'], offset: [-200, 430], photo: '',
     title: { ru: 'Почтовое отделение', ky: 'Почта бөлүмү', en: 'Post office' },
     address: { ru: 'ул. Лесная, 8 (пример)', ky: 'Токой көч., 8 (мисал)', en: '8 Forest St. (example)' },
     issues: {
@@ -241,7 +241,7 @@ window.LOCATIONS = [
     ]
   },
   {
-    id: 'pub-pharmacy', category: 'public', status: 'mid', offset: [-430, 40], photo: '',
+    id: 'pub-pharmacy', category: 'public', status: 'mid', problems: ['noRamp', 'other'], offset: [-430, 40], photo: '',
     title: { ru: 'Аптека «Здоровье»', ky: '«Ден соолук» дарыканасы', en: '“Health” pharmacy' },
     address: { ru: 'пр. Победы, 52 (пример)', ky: 'Жеңиш пр., 52 (мисал)', en: '52 Victory Ave. (example)' },
     issues: {
@@ -263,4 +263,20 @@ window.BB_latlng = function (loc) {
   var lat = c[0] + o[0] / 111320;
   var lng = c[1] + o[1] / (111320 * Math.cos(c[0] * Math.PI / 180));
   return [lat, lng];
+};
+
+/* Типы проблем — по ним считается статистика сообщений и работает фильтр «показать на карте».
+   В точках выше: problems: ['noRamp', 'highCurb', …] */
+window.PROBLEMS = {
+  noRamp:     { icon: '♿', label: { ru: 'Нет пандуса / съезда', ky: 'Пандус / түшүүчү жол жок', en: 'No ramp' } },
+  steepRamp:  { icon: '📐', label: { ru: 'Слишком крутой пандус', ky: 'Пандус өтө тик', en: 'Ramp too steep' } },
+  highCurb:   { icon: '🧱', label: { ru: 'Высокий бордюр', ky: 'Бийик бордюр', en: 'High curb' } },
+  stairsOnly: { icon: '🪜', label: { ru: 'Только лестница', ky: 'Тепкич гана', en: 'Stairs only' } },
+  narrow:     { icon: '↔️', label: { ru: 'Узкий проход / дверь', ky: 'Тар өтмөк / эшик', en: 'Narrow path / door' } },
+  badSurface: { icon: '🕳️', label: { ru: 'Ямы, плохое покрытие', ky: 'Чуңкурлар, начар жол', en: 'Potholes, bad surface' } },
+  noHandrail: { icon: '🤚', label: { ru: 'Нет поручней', ky: 'Тутка жок', en: 'No handrails' } },
+  noBench:    { icon: '🪑', label: { ru: 'Нет скамейки / навеса', ky: 'Отургуч / күнкалкан жок', en: 'No bench / shelter' } },
+  noLight:    { icon: '💡', label: { ru: 'Плохое освещение', ky: 'Жарык начар', en: 'Poor lighting' } },
+  blocked:    { icon: '🚧', label: { ru: 'Проход заставлен', ky: 'Жол тосулган', en: 'Path blocked' } },
+  other:      { icon: '❓', label: { ru: 'Другое', ky: 'Башка', en: 'Other' } }
 };

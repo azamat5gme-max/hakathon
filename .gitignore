@@ -3,3 +3,7 @@ bez-barierov.zip
 
 # Библиотеки — ставятся командой npm install
 node_modules/
+
+# Метки и фото, которые жители добавили через сервер (npm start)
+data/
+photos/uploads/
