@@ -14,6 +14,7 @@ import Anthropic from "@anthropic-ai/sdk";
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 8080;
 const MODEL = "claude-opus-5-5";
+const LANGS = { ru: "русском", ky: "кыргызском", en: "английском" };
 const PUBLIC = ["index.html", "css", "js", "photos"]; // отдаём только эти файлы и папки
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8",
@@ -22,44 +23,53 @@ const TYPES = {
 };
 
 /* ---------- Данные карты берём из того же js/data.js, что и сайт ---------- */
-async function buildSystemPrompt() {
+async function loadData() {
   const code = await fs.readFile(path.join(ROOT, "js", "data.js"), "utf8");
   const sandbox = { window: {} };
   vm.runInNewContext(code, sandbox);
-  const w = sandbox.window;
+  return sandbox.window;
+}
+
+// {ru, ky, en} → текст на нужном языке (или русский, если перевода нет)
+const pick = (v, lang) => (v && typeof v === "object" && !Array.isArray(v) ? (v[lang] ?? v.ru) : v);
+
+function buildSystemPrompt(w, lang) {
+  const L = (v) => pick(v, lang);
   const places = w.LOCATIONS.map((l) => {
     const [lat, lng] = w.BB_latlng(l);
     return {
-      название: l.title,
-      категория: w.CATEGORIES[l.category].label,
-      адрес: l.address,
-      статус: w.STATUS[l.status].label,
-      что_мешает: l.issues,
-      что_хорошо: l.good || [],
-      барьер_для: l.affects.map((g) => w.GROUPS[g].label),
-      совет: l.tip || null,
+      название: L(l.title),
+      категория: L(w.CATEGORIES[l.category].label),
+      адрес: L(l.address),
+      статус: L(w.STATUS[l.status].label),
+      что_мешает: L(l.issues) || [],
+      что_хорошо: L(l.good) || [],
+      барьер_для: l.affects.map((g) => L(w.GROUPS[g].label)),
+      совет: L(l.tip) || null,
       координаты: [Number(lat.toFixed(5)), Number(lng.toFixed(5))],
       отзывы: (l.comments || []).map((c) => `${c.name}: ${c.text}`),
     };
   });
 
-  return `Ты — ИИ-помощник сайта «Без барьеров»: это карта доступности района «${w.CITY.district}» (${w.CITY.name}). Волонтёры обошли остановки, парки, государственные здания и общественные места и отметили барьеры для людей на колясках, пожилых людей и родителей с детскими колясками.
+  return `Ты — ИИ-помощник сайта «Без барьеров»: это карта доступности района «${L(w.CITY.district)}» (${L(w.CITY.name)}). Волонтёры обошли остановки, парки, государственные здания и общественные места и отметили барьеры для людей на колясках, пожилых людей и родителей с детскими колясками.
 
 Твоя задача — подсказать человеку, куда он может пойти удобно, какие места лучше обойти, и предложить доступную альтернативу рядом.
 
 Как отвечать:
+- Отвечай на ${LANGS[lang]} языке — человек выбрал его на сайте. Если он пишет на другом языке, отвечай на языке его сообщения.
 - Опирайся только на данные карты ниже. Если места нет в данных, скажи, что его ещё не проверили, и предложи оставить отзыв на карте. Не придумывай места, адреса и факты.
-- Называй места точно так, как в поле «название» (вместе с кавычками «»): по этим названиям сайт показывает кнопки «на карту».
+- Называй места точно так, как в поле «название» (вместе с кавычками): по этим названиям сайт показывает кнопки «на карту».
 - Учитывай, кто идёт: поле «барьер_для» показывает, кому место неудобно. Если для этой группы барьера нет, место ей подходит. Если неясно, кто идёт, дай общий совет и коротко спроси.
 - Расстояния оценивай по координатам примерно и говори «около N метров».
-- Отвечай на языке пользователя (по умолчанию по-русски), коротко: 2–6 предложений или короткий список. Пиши простыми словами — среди пользователей много пожилых людей. Без заголовков и таблиц; **жирным** выделяй только названия мест.
-- Как оставить отзыв: нажать на метку на карте → внизу карточки форма «Отзывы жителей».
+- Отвечай коротко: 2–6 предложений или короткий список. Пиши простыми словами — среди пользователей много пожилых людей. Без заголовков и таблиц; **жирным** выделяй только названия мест.
+- Как оставить отзыв: нажать на метку на карте → внизу карточки форма отзывов жителей.
 
 Данные карты (JSON):
 ${JSON.stringify(places)}`;
 }
 
-const SYSTEM = await buildSystemPrompt();
+const DATA = await loadData();
+const SYSTEMS = Object.fromEntries(Object.keys(LANGS).map((l) => [l, buildSystemPrompt(DATA, l)]));
 
 /* ---------- Claude: проверяем ключ при запуске ---------- */
 let client = null;
@@ -83,21 +93,25 @@ function cleanMessages(raw) {
   return msgs.length && msgs[msgs.length - 1].role === "user" ? msgs : null;
 }
 
-async function askClaude(messages) {
+const REFUSAL = {
+  ru: "Извините, с этим я помочь не могу. Спросите меня о местах на карте 🙂",
+  ky: "Кечириңиз, буга жардам бере албайм. Картадагы жерлер тууралуу сураңыз 🙂",
+  en: "Sorry, I can’t help with that. Ask me about places on the map 🙂",
+};
+
+async function askClaude(messages, lang) {
   const response = await client.beta.messages.create({
     model: MODEL,
     max_tokens: 16000,
     betas: ["server-side-fallback-2026-07-01"],
     fallbacks: "default", // если модель откажет, запрос сам перейдёт на запасную модель
     output_config: { effort: "low" }, // чат: быстрые короткие ответы
-    system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
+    system: [{ type: "text", text: SYSTEMS[lang], cache_control: { type: "ephemeral" } }],
     messages,
   });
-  if (response.stop_reason === "refusal") {
-    return "Извините, с этим я помочь не могу. Спросите меня о местах на карте 🙂";
-  }
+  if (response.stop_reason === "refusal") return REFUSAL[lang];
   const text = response.content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();
-  return text || "Не получилось ответить — попробуйте сформулировать вопрос иначе.";
+  return text || REFUSAL[lang];
 }
 
 /* ---------- HTTP ---------- */
@@ -122,8 +136,9 @@ async function handleChat(req, res) {
   const body = await readJson(req);
   const messages = cleanMessages(body.messages);
   if (!messages) return send(res, 400, { error: "bad_messages" });
+  const lang = LANGS[body.lang] ? body.lang : "ru";
   try {
-    return send(res, 200, { reply: await askClaude(messages) });
+    return send(res, 200, { reply: await askClaude(messages, lang) });
   } catch (err) {
     if (err instanceof Anthropic.AuthenticationError) {
       aiOn = false;

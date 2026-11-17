@@ -58,6 +58,7 @@ button { font: inherit; color: inherit; }
   background: transparent; border: 1px solid var(--line); transition: background .2s, transform .2s;
 }
 .btn-ghost:hover { background: var(--surface-2); transform: translateY(-1px); }
+.topbar__btns { display: flex; gap: 6px; flex: none; }
 
 /* ---------- Появление интерфейса после интро ---------- */
 body.app-ready .topbar { animation: dropIn .8s var(--smooth) forwards; }
@@ -181,7 +182,8 @@ body.app-ready .bot-fab { animation: popIn .7s .7s var(--ease) forwards; }
   .stats { order: 3; width: 100%; margin: 0; }
   .stat { flex: 1; justify-content: center; padding: 5px 6px; }
   .stat b { font-size: 15px; }
-  .btn-ghost { margin-left: auto; padding: 7px 10px; }
+  .topbar__btns { margin-left: auto; }
+  .btn-ghost { padding: 7px 10px; }
   .leaflet-top.leaflet-right { top: 128px; }
   .side { top: auto; left: 10px; right: 84px; bottom: 12px; width: auto; max-height: 62vh; transform: translateY(130%); }
   .side__toggle {

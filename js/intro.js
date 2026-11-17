@@ -1,24 +1,21 @@
-/* ================= ИНТРО: обычный сайт → глитч → HACKED → сайт =================
-   Пропустить интро: кнопка «Пропустить», клавиша Esc или ссылка index.html?nointro */
+/* ================= ВЫБОР ЯЗЫКА → ИНТРО: обычный сайт → глитч → HACKED → сайт =================
+   Пропустить всё: кнопка «Пропустить», клавиша Esc или ссылка index.html?nointro (язык: ?lang=ky / ru / en) */
 (function () {
-  var intro = document.getElementById('intro');
-  var term = document.getElementById('hackTerm');
-  var skipBtn = document.getElementById('introSkip');
-  var timers = [], typer = null, finished = true;
+  var $ = function (id) { return document.getElementById(id); };
+  var intro = $('intro'), term = $('hackTerm'), skipBtn = $('introSkip');
+  var langScreen = $('langScreen'), langTitle = $('langTitle'), langBtns = $('langBtns');
+  var timers = [], typer = null, finished = true, titleTimer = null, picking = false;
+  var SUB = { ky: 'Сайт кыргыз тилинде', ru: 'Сайт на русском языке', en: 'Website in English' };
 
   function issuesCount() {
-    return (window.LOCATIONS || []).reduce(function (s, l) { return s + (l.issues || []).length; }, 0);
+    return (window.LOCATIONS || []).reduce(function (s, l) { return s + (BBI.T(l.issues) || []).length; }, 0);
   }
+  // Строки терминала из переводов; «!» в начале — красная строка
   function lines() {
-    return [
-      { t: '> подключение к городскому порталу... OK' },
-      { t: '> проверка: удобен ли город для всех людей...' },
-      { t: '> найдено барьеров: ' + issuesCount() },
-      { t: '> пандусы на входах: НЕ НАЙДЕНО', err: true },
-      { t: '> доступ для колясок: ОТКАЗАНО', err: true },
-      { t: '> вердикт: сайт ПЛОХОЙ — он забыл про людей', err: true },
-      { t: '> взлом системы... ██████████ 100%' }
-    ];
+    return BBI.raw('term').map(function (s) {
+      var err = s.charAt(0) === '!';
+      return { t: (err ? s.slice(1) : s).replace('{n}', issuesCount()), err: err };
+    });
   }
   function at(ms, fn) { timers.push(setTimeout(fn, ms)); }
   function clearAll() { timers.forEach(clearTimeout); timers = []; clearInterval(typer); }
@@ -81,20 +78,60 @@
     });
   }
 
+  /* ---------- Экран выбора языка ---------- */
+  function showLang(onPick) {
+    picking = false;
+    langBtns.innerHTML = '';
+    LANGS.forEach(function (L, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'lang__btn' + (L.code === BBI.lang() ? ' is-current' : '');
+      b.style.setProperty('--i', i);
+      b.innerHTML = '<span class="lang__code">' + L.short + '</span><span><span class="lang__name">' + L.name +
+        '</span><span class="lang__sub">' + SUB[L.code] + '</span></span>';
+      b.addEventListener('click', function () { pick(L.code, b, onPick); });
+      langBtns.appendChild(b);
+    });
+    langScreen.classList.remove('is-hidden', 'is-out');
+
+    var k = 0;
+    langTitle.textContent = LANGS[0].pick;
+    clearInterval(titleTimer);
+    titleTimer = setInterval(function () {                                  // заголовок по очереди на 3 языках
+      k = (k + 1) % LANGS.length;
+      langTitle.textContent = LANGS[k].pick;
+      langTitle.classList.remove('is-swap'); void langTitle.offsetWidth; langTitle.classList.add('is-swap');
+    }, 1700);
+  }
+
+  function pick(code, btn, onPick) {
+    if (picking) return;
+    picking = true;
+    clearInterval(titleTimer);
+    btn.classList.add('is-picked');
+    BBI.set(code);
+    at(250, function () {
+      langScreen.classList.add('is-out');
+      if (onPick) onPick(code);
+    });
+    setTimeout(function () { langScreen.classList.add('is-hidden'); }, 850);
+  }
+
   skipBtn.addEventListener('click', finish);
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && !finished) finish();
   });
 
-  window.BBIntro = { play: play, skip: finish };
+  window.BBIntro = { play: play, skip: finish, chooseLang: function () { showLang(null); } };
 
   document.addEventListener('DOMContentLoaded', function () {
     if (/[?&]nointro\b/.test(location.search)) {
+      langScreen.classList.add('is-hidden');
       finished = false;
       finish();
       intro.classList.add('is-done');
     } else {
-      play();
+      showLang(function () { play(); });
     }
   });
 })();

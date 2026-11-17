@@ -2,6 +2,7 @@
 (function () {
   var CITY = window.CITY, C = window.CATEGORIES, G = window.GROUPS, S = window.STATUS, LOC = window.LOCATIONS;
   var BB = window.BB = window.BB || {};
+  var t = BBI.t, T = BBI.T;
   var $ = function (id) { return document.getElementById(id); };
   var byId = {}; LOC.forEach(function (l) { byId[l.id] = l; });
   var markers = {}, firstList = true;
@@ -9,6 +10,8 @@
   var isMobile = function () { return window.matchMedia('(max-width: 760px)').matches; };
 
   BB.byId = byId;
+  BB.issues = function (loc) { return T(loc.issues) || []; };
+  BB.good = function (loc) { return T(loc.good) || []; };
   BB.esc = function (s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
@@ -42,7 +45,6 @@
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map);
   BB.map = map;
-  $('districtName').textContent = CITY.district + ' · ' + CITY.name;
 
   function makeIcon(loc, delay, extra) {
     var st = BB.effStatus(loc);
@@ -59,7 +61,7 @@
       var delay = 0.45 + (i++) * 0.11, m = markers[loc.id];
       if (!m) {
         m = markers[loc.id] = L.marker(BB_latlng(loc), { icon: makeIcon(loc, delay), riseOnHover: true });
-        m.bindTooltip(loc.title, { direction: 'top', className: 'pin-tip' });
+        m.bindTooltip(BB.esc(T(loc.title)), { direction: 'top', className: 'pin-tip' });
         m.on('click', function () { BB.openPlace(loc.id); });
       } else {
         m.setIcon(makeIcon(loc, delay));
@@ -99,20 +101,20 @@
     var cat = $('catChips'), grp = $('groupChips'), leg = $('legend');
     cat.innerHTML = ''; grp.innerHTML = ''; leg.innerHTML = '';
     Object.keys(C).forEach(function (k) {
-      cat.appendChild(chip(C[k].icon + ' ' + C[k].label, state.cats.has(k), function () {
+      cat.appendChild(chip(C[k].icon + ' ' + BB.esc(T(C[k].label)), state.cats.has(k), function () {
         state.cats.has(k) ? state.cats.delete(k) : state.cats.add(k);
         renderChips(); applyFilters();
       }));
     });
-    grp.appendChild(chip('👥 Все', !state.group, function () { setGroup(null); }));
+    grp.appendChild(chip('👥 ' + t('all'), !state.group, function () { setGroup(null); }));
     Object.keys(G).forEach(function (k) {
-      grp.appendChild(chip(G[k].icon + ' ' + G[k].label, state.group === k, function () { setGroup(state.group === k ? null : k); }));
+      grp.appendChild(chip(G[k].icon + ' ' + BB.esc(T(G[k].label)), state.group === k, function () { setGroup(state.group === k ? null : k); }));
     });
     Object.keys(S).forEach(function (k) {
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'legend__row';
       b.setAttribute('aria-pressed', state.statuses.has(k) ? 'true' : 'false');
-      b.innerHTML = '<span class="dot" style="--c:' + S[k].color + '"></span>' + S[k].label;
+      b.innerHTML = '<span class="dot" style="--c:' + S[k].color + '"></span>' + BB.esc(T(S[k].label));
       b.addEventListener('click', function () {
         state.statuses.has(k) ? state.statuses.delete(k) : state.statuses.add(k);
         renderChips(); applyFilters();
@@ -123,7 +125,7 @@
   function setGroup(g) {
     state.group = g;
     renderChips(); applyFilters(true);
-    if (g) BB.toast(G[g].icon + ' Показываю карту глазами: ' + G[g].label.toLowerCase());
+    if (g) BB.toast(G[g].icon + ' ' + t('groupToast', { g: T(G[g].label) }));
   }
   BB.setGroup = setGroup;
 
@@ -134,16 +136,16 @@
       return ORDER[BB.effStatus(a)] - ORDER[BB.effStatus(b)];
     });
     $('listCount').textContent = list.length;
-    ul.innerHTML = list.length ? '' : '<li class="plist__empty">Ничего не найдено — включите фильтры</li>';
+    ul.innerHTML = list.length ? '' : '<li class="plist__empty">' + t('empty') + '</li>';
     list.forEach(function (loc, i) {
-      var st = BB.effStatus(loc), li = document.createElement('li');
+      var st = BB.effStatus(loc), li = document.createElement('li'), n = BB.issues(loc).length;
       li.style.animationDelay = (firstList ? 500 + i * 45 : i * 30) + 'ms';
       if (loc.id === state.activeId) li.className = 'is-active';
       li.dataset.id = loc.id;
       li.innerHTML = '<span class="plist__icon">' + C[loc.category].icon + '</span>' +
-        '<span class="plist__text"><div class="plist__title">' + BB.esc(loc.title) + '</div>' +
+        '<span class="plist__text"><div class="plist__title">' + BB.esc(T(loc.title)) + '</div>' +
         '<div class="plist__meta"><span class="dot" style="--c:' + S[st].color + ';display:inline-block;width:8px;height:8px;margin-right:5px"></span>' +
-        S[st].label + (loc.issues.length ? ' · проблем: ' + loc.issues.length : '') + '</div></span>';
+        BB.esc(T(S[st].label)) + (n ? ' · ' + t('problemsN', { n: n }) : '') + '</div></span>';
       li.addEventListener('click', function () { BB.openPlace(loc.id); });
       ul.appendChild(li);
     });
@@ -188,15 +190,15 @@
   function countUp(el, to, animate) {
     if (!animate) { el.textContent = to; return; }
     var t0 = performance.now(), dur = 1400;
-    (function step(t) {
-      var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
       el.textContent = Math.round(to * e);
       if (k < 1) requestAnimationFrame(step);
     })(t0);
   }
   function updateStats(animate) {
     var issues = 0, comments = 0;
-    LOC.forEach(function (l) { issues += l.issues.length; comments += BB.comments(l).length; });
+    LOC.forEach(function (l) { issues += BB.issues(l).length; comments += BB.comments(l).length; });
     countUp($('statPoints'), LOC.length, animate);
     countUp($('statIssues'), issues, animate);
     countUp($('statComments'), comments, animate);
@@ -205,13 +207,25 @@
   /* ---------- Тост ---------- */
   var toastTimer;
   BB.toast = function (msg) {
-    var t = $('toast'); t.textContent = msg; t.classList.add('is-on');
-    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('is-on'); }, 2600);
+    var el = $('toast'); el.textContent = msg; el.classList.add('is-on');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.classList.remove('is-on'); }, 2600);
   };
+
+  /* ---------- Язык ---------- */
+  function applyLang() {
+    $('districtName').textContent = T(CITY.district) + ' · ' + T(CITY.name);
+    var L = LANGS.filter(function (x) { return x.code === BBI.lang(); })[0];
+    $('langBtn').textContent = '🌐 ' + (L ? L.short : 'RU');
+    LOC.forEach(function (loc) { if (markers[loc.id]) markers[loc.id].setTooltipContent(BB.esc(T(loc.title))); });
+    renderChips(); renderList();
+    if (state.activeId && BB.renderPanel) BB.renderPanel(byId[state.activeId]);
+  }
+  document.addEventListener('bb:lang', applyLang);
 
   /* ---------- Запуск ---------- */
   $('sideToggle').addEventListener('click', function () { $('side').classList.toggle('is-open'); });
   $('replayIntro').addEventListener('click', function () { if (window.BBIntro) window.BBIntro.play(); });
+  $('langBtn').addEventListener('click', function () { if (window.BBIntro) window.BBIntro.chooseLang(); });
   document.addEventListener('bb:introstart', function () { BB.closePlace(); });
   document.addEventListener('bb:introdone', function () {
     map.invalidateSize();
@@ -219,5 +233,5 @@
     renderChips(); renderList(); dropMarkers();
     setTimeout(function () { updateStats(true); }, 500);
   });
-  renderChips();
+  applyLang();
 })();
