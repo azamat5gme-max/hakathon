@@ -126,7 +126,8 @@
 
   var HACK_KEYS = ['h', 'H', 'р', 'Р', 'Enter', ' ', 'ArrowRight', 'PageDown'];
   skipBtn.addEventListener('click', finish);
-  document.getElementById('introHack').addEventListener('click', hack);
+  var hackBtn = document.getElementById('introHack');
+  if (hackBtn) hackBtn.addEventListener('click', hack);
   document.addEventListener('keydown', function (e) {
     if (finished) return;
     if (e.key === 'Escape') { finish(); return; }

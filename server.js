@@ -162,7 +162,7 @@ async function handleStatic(url, res) {
     return send(res, 404, "Not found", "text/plain; charset=utf-8");
   }
   const data = await fs.readFile(file);
-  res.writeHead(200, { "Content-Type": type });
+  res.writeHead(200, { "Content-Type": type, "Cache-Control": "no-cache" }); // всегда свежие файлы
   res.end(data);
 }
 
