@@ -1,0 +1,13 @@
+{
+  "name": "bez-barierov",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Карта доступности района: фото барьеров, адреса, отзывы жителей и ИИ-помощник",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.9.0"
+  }
+}

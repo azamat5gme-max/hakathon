@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Без барьеров — карта доступности</title>
+  <meta name="description" content="Карта мест, где людям на колясках, пожилым и родителям с колясками трудно пройти. Фото, адреса и отзывы жителей.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+  <link rel="stylesheet" href="css/intro.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/panel.css">
+  <link rel="stylesheet" href="css/chat.css">
+</head>
+<body>
+
+  <!-- ============ ИНТРО: обычный сайт → HACKED ============ -->
+  <div id="intro" class="intro">
+    <div class="fake">
+      <div class="fake__top">Версия для слабовидящих · КЫР | РУС | ENG</div>
+      <header class="fake__header">
+        <div class="fake__logo"><span class="fake__emblem"></span>Городской портал</div>
+        <nav class="fake__nav"><a>Главная</a><a>Новости</a><a>Услуги</a><a>Контакты</a></nav>
+      </header>
+      <main class="fake__main">
+        <h1>Добро пожаловать на городской портал</h1>
+        <p>Информация о городской инфраструктуре, транспорте и общественных местах.</p>
+        <div class="fake__cards">
+          <div class="fake__card"><b>Новости</b><p>Плановые работы на остановках общественного транспорта.</p></div>
+          <div class="fake__card"><b>Приём граждан</b><p>Только лично, 3 этаж. Лифта нет.</p></div>
+          <div class="fake__card"><b>Доступная среда</b><p>Раздел находится в разработке… с 2015 года.</p></div>
+        </div>
+        <div class="fake__loader"><span></span></div>
+        <div class="fake__alert">⚠ Обнаружено вмешательство в систему…</div>
+      </main>
+      <footer class="fake__footer">© 2026 Городской портал. Все права защищены.</footer>
+    </div>
+
+    <div class="hack">
+      <pre class="hack__term" id="hackTerm"></pre>
+      <h1 class="hack__title" data-text="HACKED">HACKED</h1>
+      <p class="hack__sub">Этот сайт взломан, потому что он был <b class="hack__bad">плохим</b>.</p>
+      <p class="hack__why">Он не замечал тех, кому трудно ходить по городу: людей на колясках, пожилых и мам с колясками. Мы это исправили — теперь город <b>для всех</b>.</p>
+    </div>
+
+    <div class="intro__scan"></div>
+    <button class="intro__skip" id="introSkip" type="button">Пропустить ⏭</button>
+  </div>
+
+  <!-- ============ ОСНОВНОЙ САЙТ ============ -->
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand__logo">♿</div>
+        <div>
+          <div class="brand__name">Без барьеров</div>
+          <div class="brand__sub" id="districtName">карта доступности</div>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b id="statPoints">0</b><span>точек</span></div>
+        <div class="stat stat--bad"><b id="statIssues">0</b><span>проблем</span></div>
+        <div class="stat stat--good"><b id="statComments">0</b><span>отзывов</span></div>
+      </div>
+      <button class="btn-ghost" id="replayIntro" type="button" title="Показать интро ещё раз">▶ Интро</button>
+    </header>
+
+    <div id="map" class="map"></div>
+
+    <aside class="side" id="side">
+      <button class="side__toggle" id="sideToggle" type="button">☰ Фильтры и список</button>
+      <div class="side__body">
+        <div class="side__section">
+          <h3>Что показывать</h3>
+          <div class="chips" id="catChips"></div>
+        </div>
+        <div class="side__section">
+          <h3>Для кого барьер</h3>
+          <div class="chips" id="groupChips"></div>
+        </div>
+        <div class="side__section">
+          <h3>Легенда</h3>
+          <div class="legend" id="legend"></div>
+        </div>
+        <div class="side__section side__section--list">
+          <h3>Точки <span class="count" id="listCount"></span></h3>
+          <ul class="plist" id="placeList"></ul>
+        </div>
+      </div>
+    </aside>
+
+    <section class="panel" id="panel" aria-hidden="true">
+      <button class="panel__close" id="panelClose" type="button" aria-label="Закрыть">✕</button>
+      <div class="panel__scroll" id="panelContent"></div>
+    </section>
+
+    <!-- ============ ИИ-ПОМОЩНИК ============ -->
+    <button class="bot-fab" id="botFab" type="button" aria-label="Открыть ИИ-помощника">
+      <span class="bot-fab__face">🤖</span><span class="bot-fab__label">Спросить ИИ</span>
+    </button>
+    <section class="bot" id="bot" aria-hidden="true">
+      <header class="bot__head">
+        <div class="bot__avatar">🤖</div>
+        <div class="bot__who">
+          <div class="bot__name">ИИ-помощник</div>
+          <div class="bot__status" id="botStatus">подскажет, куда можно пройти</div>
+        </div>
+        <button class="bot__close" id="botClose" type="button" aria-label="Закрыть">✕</button>
+      </header>
+      <div class="bot__msgs" id="botMsgs"></div>
+      <div class="bot__quick" id="botQuick"></div>
+      <form class="bot__form" id="botForm" autocomplete="off">
+        <input id="botInput" type="text" placeholder="Например: куда сходить с коляской?" maxlength="500">
+        <button type="submit" aria-label="Отправить">➤</button>
+      </form>
+    </section>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/intro.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/panel.js"></script>
+  <script src="js/bot.js"></script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+/* ================= ИНТРО: обычный сайт → глитч → HACKED ================= */
+.intro {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #eef0f3; overflow: hidden;
+  clip-path: circle(150% at 50% 50%);
+}
+.intro.is-out { animation: irisOut 1s cubic-bezier(.7,0,.25,1) forwards; }
+.intro.is-done { display: none; }
+@keyframes irisOut { to { clip-path: circle(0% at 50% 50%); } }
+
+/* ---------- 1. «Обычный» скучный сайт ---------- */
+.fake {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  font-family: Arial, "Times New Roman", serif; color: #222; background: #f4f5f7;
+  animation: fakeIn .5s ease both;
+}
+@keyframes fakeIn { from { opacity: 0; } }
+.fake__top { background: #dfe3e8; font-size: 12px; padding: 6px 24px; color: #555; text-align: right; }
+.fake__header {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  background: #1f4e8c; color: #fff; padding: 18px 24px;
+}
+.fake__logo { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: bold; }
+.fake__emblem { width: 34px; height: 34px; border-radius: 50%; background: #f2c94c; border: 3px solid #fff; }
+.fake__nav { display: flex; gap: 18px; font-size: 14px; flex-wrap: wrap; }
+.fake__nav a { color: #fff; text-decoration: underline; }
+.fake__main { flex: 1; max-width: 960px; width: 100%; margin: 0 auto; padding: 32px 24px; }
+.fake__main h1 { font-size: 26px; color: #1f4e8c; margin: 0 0 8px; font-weight: normal; }
+.fake__main p { color: #555; font-size: 15px; }
+.fake__cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 22px 0; }
+.fake__card { background: #fff; border: 1px solid #d5d9df; padding: 14px; font-size: 14px; }
+.fake__card b { color: #1f4e8c; }
+.fake__card p { margin: 6px 0 0; font-size: 13px; }
+.fake__loader { height: 6px; background: #d5d9df; overflow: hidden; max-width: 320px; }
+.fake__loader span { display: block; height: 100%; width: 0; background: #1f4e8c; animation: load 4.4s cubic-bezier(.3, .6, .4, 1) forwards; }
+@keyframes load { to { width: 92%; } }
+.fake__footer { background: #dfe3e8; padding: 12px 24px; font-size: 12px; color: #666; }
+
+/* Тревога перед взломом */
+.fake__alert {
+  margin-top: 18px; max-width: 420px; padding: 12px 14px; font-size: 14px; font-weight: bold;
+  color: #8a1c1c; background: #fdecec; border: 1px solid #e5a3a3; opacity: 0; transform: translateY(8px);
+}
+.intro.is-alert .fake__alert { animation: alertIn .35s ease forwards, alertBlink .5s .35s steps(1) infinite; }
+@keyframes alertIn { to { opacity: 1; transform: none; } }
+@keyframes alertBlink { 50% { background: #f7c4c4; } }
+
+/* ---------- 2. Глитч: сайт «ломается» ---------- */
+.intro.is-glitch .fake { animation: glitchShake .12s steps(2) infinite; }
+.intro.is-glitch .fake::before,
+.intro.is-glitch .fake::after {
+  content: ""; position: absolute; left: 0; right: 0; pointer-events: none;
+  background: rgba(255, 0, 80, .35); mix-blend-mode: multiply;
+}
+.intro.is-glitch .fake::before { top: 22%; height: 9%; animation: slice 0.3s steps(3) infinite; }
+.intro.is-glitch .fake::after { top: 61%; height: 6%; background: rgba(0, 240, 255, .4); animation: slice 0.25s steps(3) infinite reverse; }
+@keyframes glitchShake {
+  0%   { transform: translate(0, 0) skewX(0); filter: none; }
+  25%  { transform: translate(-8px, 3px) skewX(4deg); filter: hue-rotate(90deg) contrast(1.6); }
+  50%  { transform: translate(6px, -4px) skewX(-6deg); filter: invert(1) saturate(3); }
+  75%  { transform: translate(-3px, 6px) skewX(2deg); filter: hue-rotate(-120deg) contrast(2); }
+  100% { transform: translate(4px, 0) skewX(-2deg); filter: none; }
+}
+@keyframes slice {
+  0% { transform: translateX(-30px); } 50% { transform: translateX(40px); } 100% { transform: translateX(-10px); }
+}
+
+/* Сканлайны поверх всего интро */
+.intro__scan {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 1px, transparent 1px 3px);
+}
+.intro.is-glitch .intro__scan, .intro.is-hacked .intro__scan { opacity: 1; }
+
+/* ---------- 3. Экран HACKED ---------- */
+.hack {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px; background: radial-gradient(ellipse at center, #10131c 0%, #050608 70%);
+  opacity: 0; visibility: hidden; transition: opacity .15s;
+}
+.intro.is-hacked .hack { opacity: 1; visibility: visible; }
+.hack__term {
+  font-family: "JetBrains Mono", Consolas, monospace; color: #39ff9f; font-size: clamp(12px, 1.6vw, 15px);
+  line-height: 1.7; min-height: 12em; width: min(640px, 100%); margin: 0 0 18px; white-space: pre-wrap;
+  text-shadow: 0 0 8px rgba(57, 255, 159, .55);
+}
+.hack__term .err { color: #ff4d6d; text-shadow: 0 0 8px rgba(255, 77, 109, .7); }
+.hack__term .cursor { display: inline-block; width: .6em; background: #39ff9f; animation: blink .7s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+.hack__title {
+  position: relative; margin: 0; font-family: "Unbounded", "JetBrains Mono", sans-serif; font-weight: 900;
+  font-size: clamp(44px, 12vw, 170px); letter-spacing: .04em; color: #fff; line-height: 1;
+  opacity: 0; transform: scale(2.2); filter: blur(12px);
+}
+.intro.is-title .hack__title { animation: titleSlam .55s cubic-bezier(.2,1.4,.4,1) forwards, titleJitter 2.4s .6s infinite; }
+@keyframes titleSlam { to { opacity: 1; transform: scale(1); filter: blur(0); } }
+@keyframes titleJitter {
+  0%, 92%, 100% { transform: translate(0); }
+  93% { transform: translate(-4px, 2px); } 95% { transform: translate(5px, -2px); } 97% { transform: translate(-2px, 0); }
+}
+.hack__title::before, .hack__title::after {
+  content: attr(data-text); position: absolute; inset: 0; pointer-events: none;
+}
+.hack__title::before { color: #ff2e63; transform: translate(-4px, 0); mix-blend-mode: screen; animation: glitchTop 1.6s infinite linear alternate; }
+.hack__title::after  { color: #08f7fe; transform: translate(4px, 0);  mix-blend-mode: screen; animation: glitchBot 1.3s infinite linear alternate; }
+@keyframes glitchTop {
+  0%   { clip-path: inset(0 0 70% 0); }  20% { clip-path: inset(10% 0 55% 0); transform: translate(-7px, -1px); }
+  40%  { clip-path: inset(40% 0 35% 0); } 60% { clip-path: inset(5% 0 80% 0); transform: translate(5px, 1px); }
+  80%  { clip-path: inset(60% 0 10% 0); } 100% { clip-path: inset(25% 0 50% 0); transform: translate(-3px, 0); }
+}
+@keyframes glitchBot {
+  0%   { clip-path: inset(65% 0 0 0); }  25% { clip-path: inset(80% 0 5% 0); transform: translate(6px, 1px); }
+  50%  { clip-path: inset(50% 0 20% 0); } 75% { clip-path: inset(70% 0 12% 0); transform: translate(-6px, -1px); }
+  100% { clip-path: inset(55% 0 25% 0); transform: translate(3px, 0); }
+}
+.hack__sub {
+  margin: 18px 0 0; max-width: 760px; text-align: center; font-family: "Manrope", sans-serif;
+  font-size: clamp(17px, 2.5vw, 26px); font-weight: 700; color: #e6ebf5; opacity: 0; transform: translateY(14px);
+}
+.hack__sub .hack__bad { color: #ff4d6d; text-shadow: 0 0 14px rgba(255, 77, 109, .75); }
+.intro.is-title .hack__sub { animation: subIn .6s .35s ease forwards; }
+@keyframes subIn { to { opacity: 1; transform: none; } }
+.hack__why {
+  margin: 12px 0 0; max-width: 640px; text-align: center; font-family: "Manrope", sans-serif;
+  font-size: clamp(14px, 1.8vw, 18px); line-height: 1.55; color: #9aa4b8; opacity: 0; transform: translateY(14px);
+}
+.hack__why b { color: #39ff9f; }
+.intro.is-title .hack__why { animation: subIn .7s 1.4s ease forwards; }
+
+/* ---------- Кнопка «Пропустить» ---------- */
+.intro__skip {
+  position: absolute; right: 18px; bottom: 18px; z-index: 2; cursor: pointer;
+  font: 600 13px "Manrope", sans-serif; padding: 9px 14px; border-radius: 999px;
+  color: #fff; background: rgba(15, 18, 28, .72); border: 1px solid rgba(255, 255, 255, .25);
+  backdrop-filter: blur(6px); transition: transform .2s, background .2s;
+}
+.intro__skip:hover { transform: translateY(-2px); background: rgba(15, 18, 28, .92); }
+
+@media (prefers-reduced-motion: reduce) {
+  .intro.is-glitch .fake, .hack__title::before, .hack__title::after { animation: none !important; }
+}
