@@ -189,7 +189,7 @@
       return ORDER[BB.effStatus(a)] - ORDER[BB.effStatus(b)];
     });
     $('listCount').textContent = list.length;
-    ul.innerHTML = list.length ? '' : '<li class="plist__empty">' + t('empty') + '</li>';
+    ul.innerHTML = list.length ? '' : '<li class="plist__empty">' + t(LOC.length ? 'empty' : 'noPlaces') + '</li>';
     list.forEach(function (loc, i) {
       var st = BB.effStatus(loc), li = document.createElement('li'), n = BB.issues(loc).length;
       li.style.animationDelay = (firstList ? 500 + i * 45 : i * 30) + 'ms';

@@ -109,3 +109,8 @@ Object.assign(window.I18N.en, {
   savedLocal: 'Demo: the pin is saved in this browser.',
   howtoPin: 'Easy 📍\n1. Press the green “+ Report a barrier” button at the bottom.\n2. Tap the map where the problem is (or “📍 I’m here”).\n3. Mark what’s wrong, add a photo and press “Add to the map”.\nFirst the pin is “under review” ⏳. Once 2 other people confirm it and the AI checks it, it appears on the map with a 👤 badge.'
 });
+
+/* Пустая карта — приглашение поставить первую метку */
+window.I18N.ru.noPlaces = 'Пока нет точек — добавьте первую кнопкой «+ Сообщить о барьере» 📍';
+window.I18N.ky.noPlaces = 'Азырынча жерлер жок — биринчисин «+ Тоскоолдук тууралуу кабарлоо» баскычы менен кошуңуз 📍';
+window.I18N.en.noPlaces = 'No places yet — add the first one with “+ Report a barrier” 📍';

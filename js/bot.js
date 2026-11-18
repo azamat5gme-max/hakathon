@@ -150,7 +150,7 @@
       var sc = q.filter(function (w) { return keys.some(function (k) { return similar(w, k); }); }).length;
       return { l: l, s: sc + (sc && l.category === cat ? 0.5 : 0) };
     }).sort(function (a, b) { return b.s - a.s; });
-    if (!scored[0].s || (scored[1] && scored[1].s === scored[0].s)) return null;
+    if (!scored.length || !scored[0].s || (scored[1] && scored[1].s === scored[0].s)) return null;
     return scored[0].l;
   }
   function dist(a, b) {
@@ -241,8 +241,10 @@
       if (BB.setProblem) BB.setProblem(prob);
       return { text: t('botStatOne', { icon: P[prob].icon, label: label, n: r.n, v: r.v, u: r.u }) + '\n' + t('botStatMore'), places: r.ids };
     }
+    var top = st.rows.filter(function (x) { return x.n; }).slice(0, 5);
+    if (!top.length) return { text: t('noPlaces') };                        // пока нет ни одного сообщения
     var lines = [t('botStatHead', { n: st.barriers, u: st.users })];
-    st.rows.filter(function (x) { return x.n; }).slice(0, 5).forEach(function (x) {
+    top.forEach(function (x) {
       lines.push('• ' + P[x.key].icon + ' ' + T(P[x.key].label) + ' — ' + x.n);
     });
     return { text: lines.join('\n') };

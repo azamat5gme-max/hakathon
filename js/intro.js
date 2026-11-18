@@ -8,7 +8,9 @@
   var SUB = { ky: 'Сайт кыргыз тилинде', ru: 'Сайт на русском языке', en: 'Website in English' };
 
   function issuesCount() {
-    return (window.LOCATIONS || []).reduce(function (s, l) { return s + (BBI.T(l.issues) || []).length; }, 0);
+    return (window.LOCATIONS || []).reduce(function (s, l) {
+      return s + (window.BB && BB.issues ? BB.issues(l) : BBI.T(l.issues) || []).length;   // и точки волонтёров, и метки жителей
+    }, 0);
   }
   // Строки терминала из переводов; «!» в начале — красная строка
   function lines() {
