@@ -119,3 +119,8 @@ window.I18N.en.noPlaces = 'No places yet — add the first one with “+ Report 
 window.I18N.ru.savedNoPhoto = 'В браузере мало места — метка сохранена без фото';
 window.I18N.ky.savedNoPhoto = 'Браузерде орун аз — белги сүрөтсүз сакталды';
 window.I18N.en.savedNoPhoto = 'Not enough browser space — the pin was saved without the photo';
+
+/* Облако Firebase недоступно */
+window.I18N.ru.cloudError = 'Нет связи с облаком — проверьте интернет';
+window.I18N.ky.cloudError = 'Булут менен байланыш жок — интернетти текшериңиз';
+window.I18N.en.cloudError = 'No connection to the cloud — check the internet';

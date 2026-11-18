@@ -8,7 +8,8 @@
   var C = window.CATEGORIES, G = window.GROUPS, P = window.PROBLEMS;
   var map = BB.map, panel = document.getElementById('panel'), content = document.getElementById('panelContent');
   var $ = function (id) { return document.getElementById(id); };
-  var KEY = 'bb-reports-v1', NEED = 2, serverMode = false;
+  var KEY = 'bb-reports-v1', NEED = 2;
+  var mode = 'local', cloud = null;          // 'local' — только этот браузер, 'server' — npm start, 'cloud' — Firebase
   var placing = false, temp = null, draft = null, banner = null;
   var pending = {}, openId = null;                                   // метки на проверке: id → { r, m, local }
   var ready = function () { return document.body.classList.contains('app-ready'); };
@@ -46,16 +47,101 @@
     return fetch('/api/reports', { cache: 'no-store' })
       .then(function (res) { if (!res.ok) throw new Error(res.status); return res.json(); })
       .then(function (d) {
-        serverMode = true; NEED = d.need || NEED;
+        mode = 'server'; NEED = d.need || NEED;
         var seen = {};
         (d.reports || []).forEach(function (r) { seen[r.id] = true; ingest(r); });
         Object.keys(pending).forEach(function (id) { if (!seen[id] && !pending[id].local) removeGhost(id); });
       });
   }
   loadLocal().forEach(function (r) { r.local = true; ingest(r); });
-  if (location.protocol.indexOf('http') === 0) {
+  (BB.cloudReady || Promise.resolve(null)).then(function (c) {
+    if (c) { startCloud(c); return; }                                  // Firebase — общее для всех устройств
+    if (location.protocol.indexOf('http') !== 0) return;               // открыт просто файлом — только этот браузер
     sync().then(function () { setInterval(function () { sync().catch(function () { /* сервер недоступен */ }); }, 8000); })
-      .catch(function () { serverMode = false; });
+      .catch(function () { mode = 'local'; });
+  });
+
+  /* ---------- Облако Firebase: метки и фото видны на всех устройствах сразу ---------- */
+  function forCloud(r) {
+    var x = {};
+    Object.keys(r).forEach(function (k) { if (k !== 'local' && k !== '_pop' && r[k] !== undefined) x[k] = r[k]; });
+    if (x.photo && x.photo.length > 900000) x.photo = '';            // документ Firebase — до 1 МБ
+    x.text = x.text || '';
+    x.createdAt = cloud.stamp();
+    return x;
+  }
+  function startCloud(c) {
+    cloud = c; mode = 'cloud';
+    var col = c.db.collection('reports');
+    var old = loadLocal();                                             // метки, сохранённые раньше только в этом браузере
+    if (old.length) {
+      Promise.all(old.map(function (r) {
+        var x = forCloud(r);
+        x.review = 'pending'; x.confirms = []; x.uid = x.uid || BB.uid; delete x.ai;
+        return col.doc(r.id).set(x);
+      }))
+        .then(function () { try { localStorage.removeItem(KEY); } catch (e) { /* ок */ } })
+        .catch(function (err) { console.warn('Не удалось перенести старые метки в облако:', err.message); });
+    }
+    var shown = {};                                                    // одобренные метки из облака, уже на карте
+    col.onSnapshot(function (snap) {
+      var seen = {};
+      snap.forEach(function (d) {
+        seen[d.id] = true;
+        if (d.metadata.hasPendingWrites) return;                       // сервер ещё не подтвердил — не показываем
+        var r = d.data(); r.id = d.id;
+        ingest(r);
+        if (isPublic(r)) shown[r.id] = true;
+      });
+      Object.keys(pending).forEach(function (id) { if (!seen[id]) removeGhost(id); });
+      Object.keys(shown).forEach(function (id) {                       // удалили в Firebase Console — убираем у всех
+        if (!seen[id]) { delete shown[id]; if (BB.removePlace) BB.removePlace(id); }
+      });
+    }, function (err) { console.warn('Firebase: метки недоступны —', err.message); BB.toast(t('cloudError')); });
+  }
+
+  /* Автопроверка (в облаке ключ ИИ хранить нельзя — проверяем по правилам, как сервер без ключа) */
+  var BAD_WORDS = /(хуй|хуе|пизд|ебан|ебат|бля|сука|мудак|долбо[её]б|fuck|shit|bitch|cunt)/i;
+  function R(ru, ky, en) { return { ru: ru, ky: ky, en: en }; }
+  function ruleCheck(r) {
+    var text = (typeof r.title === 'string' ? r.title : '') + ' ' + (r.text || '');
+    if (BAD_WORDS.test(text)) return { approve: false, reason: R('грубые слова', 'орой сөздөр', 'offensive words') };
+    if (/(https?:\/\/|www\.|t\.me\/)/i.test(text)) return { approve: false, reason: R('ссылки или реклама', 'шилтемелер же жарнама', 'links or ads') };
+    if (/\d[\d\s()+-]{8,}\d/.test(text)) return { approve: false, reason: R('номера телефонов', 'телефон номерлери', 'phone numbers') };
+    if (!(r.problems || []).length && (r.text || '').trim().length < 10 && r.status !== 'good') {
+      return { approve: false, reason: R('не указано, что мешает', 'эмне тоскоол экени жазылган эмес', 'no problem described') };
+    }
+    return { approve: true, reason: R('похоже на настоящий барьер', 'чыныгы тоскоолдукка окшош', 'looks like a real barrier') };
+  }
+
+  /* Подтверждение: на сервер (npm start) или в облако (транзакция — два человека не «потеряют» голоса друг друга) */
+  function confirmCall(id) {
+    if (mode !== 'cloud') {
+      return fetch('/api/reports/' + encodeURIComponent(id) + '/confirm', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: BB.uid })
+      }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); });
+    }
+    var ref = cloud.db.collection('reports').doc(id);
+    return cloud.db.runTransaction(function (tx) {
+      return tx.get(ref).then(function (snap) {
+        if (!snap.exists) return { ok: false, d: { error: 'not_found' } };
+        var r = snap.data(); r.id = id;
+        if (r.review !== 'pending') return { ok: true, d: { report: r } };
+        if (r.uid && r.uid === BB.uid) return { ok: false, d: { error: 'own_report' } };
+        var confirms = (r.confirms || []).slice();
+        if (confirms.indexOf(BB.uid) >= 0) return { ok: false, d: { error: 'already_confirmed' } };
+        confirms.push(BB.uid);
+        var upd = { confirms: confirms };
+        if (confirms.length >= NEED) {                                   // хватает людей → автопроверка
+          var v = ruleCheck(r);
+          upd.review = v.approve ? 'approved' : 'rejected';
+          upd.ai = { approve: v.approve, reason: v.reason, by: 'rules', at: new Date().toISOString() };
+        }
+        tx.update(ref, upd);
+        Object.keys(upd).forEach(function (k) { r[k] = upd[k]; });
+        return { ok: true, d: { report: r } };
+      });
+    });
   }
 
   /* ---------- Метки на проверке («призраки») ---------- */
@@ -113,7 +199,7 @@
     var n = (r.confirms || []).length, mine = r.uid && r.uid === BB.uid, did = (r.confirms || []).indexOf(BB.uid) >= 0;
     var dots = '';
     for (var i = 0; i < NEED; i++) dots += '<i' + (i < n ? ' class="is-on"' : '') + '></i>';
-    var action = !serverMode ? '<div class="review__note">' + esc(t('needServer')) + '</div>'
+    var action = mode === 'local' ? '<div class="review__note">' + esc(t('needServer')) + '</div>'
       : mine ? '<div class="review__note">' + esc(t('yourReport', { need: NEED })) + '</div>'
       : did ? '<div class="review__note is-ok">' + esc(t('youConfirmed', { n: Math.max(0, NEED - n) })) + '</div>'
       : '<button type="button" class="review__btn" id="confirmBtn">' + esc(t('confirmBtn')) + '</button>';
@@ -132,7 +218,7 @@
     content.scrollTop = 0;
   }
 
-  /* «✅ Подтверждаю» → сервер; на 2-м подтверждении сервер спрашивает ИИ */
+  /* «✅ Подтверждаю» → сервер или облако; на 2-м подтверждении — проверка ИИ */
   content.addEventListener('click', function (e) {
     var btn = e.target.closest('#confirmBtn');
     if (!btn || !openId || !pending[openId]) return;
@@ -140,10 +226,7 @@
     btn.disabled = true;
     btn.textContent = willCheck ? t('aiChecking') : '…';
     if (willCheck) btn.classList.add('is-checking');
-    fetch('/api/reports/' + encodeURIComponent(id) + '/confirm', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: BB.uid })
-    })
-      .then(function (res) { return res.json().then(function (d) { return { ok: res.ok, d: d }; }); })
+    confirmCall(id)
       .then(function (x) {
         setTimeout(function () {                                         // чуть-чуть показать «ИИ проверяет…»
           if (!x.ok) {
@@ -238,7 +321,7 @@
         '<span id="rPhotoLbl">' + esc(t('photoBtn')) + '</span></label><div class="rphoto__preview" id="rPreview"></div></div>' +
       '<div class="rv" style="--i:7"><input id="rName" maxlength="40" placeholder="' + esc(t('namePh')) + '" value="' + esc(name) + '"></div>' +
       '<div class="rv" style="--i:8"><button type="submit" class="rform__submit">' + esc(t('submitReport')) + '</button>' +
-        '<div class="cform__note">' + esc(t(serverMode ? 'savedServer' : 'savedLocal')) + '</div></div>' +
+        '<div class="cform__note">' + esc(t(mode !== 'local' ? 'savedServer' : 'savedLocal')) + '</div></div>' +
       '</form>';
     content.scrollTop = 0;
     panel.classList.add('is-open'); panel.setAttribute('aria-hidden', 'false');
@@ -314,7 +397,13 @@
       openPending(saved.id);
       BB.toast(t('sentForReview'));
     };
-    if (!serverMode) { if (saveHere()) done(r); else fail(); return; }
+    if (mode === 'cloud') {                                             // в облако — сразу видно всем
+      cloud.db.collection('reports').doc(r.id).set(forCloud(r))
+        .then(function () { done(r); })
+        .catch(function (err) { console.warn('Firebase:', err.message); if (saveHere()) done(r); else fail(); });
+      return;
+    }
+    if (mode === 'local') { if (saveHere()) done(r); else fail(); return; }
     fetch('/api/reports', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(r) })
       .then(function (res) { if (!res.ok) throw new Error(res.status); return res.json(); })
       .then(function (d) { done(d.report); })

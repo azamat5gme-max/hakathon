@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// Правила для Firebase Firestore (вставьте в Firebase Console → Firestore Database → Rules → Publish).
+// Режим «test mode» сам выключится через 30 дней — эти правила нужны, чтобы сайт работал и дальше.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Метки жителей: читать могут все; создавать — только «на проверке» и без подтверждений;
+    // менять можно только подтверждения (по одному) и итог проверки — после 2 подтверждений.
+    match /reports/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.review == 'pending'
+        && request.resource.data.confirms.size() == 0
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 600
+        && (!('photo' in request.resource.data) || request.resource.data.photo.size() < 900000);
+      allow update: if resource.data.review == 'pending'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['confirms', 'review', 'ai'])
+        && request.resource.data.confirms.size() == resource.data.confirms.size() + 1
+        && (request.resource.data.review == 'pending' || request.resource.data.confirms.size() >= 2);
+      allow delete: if false;   // удалить метку можно только в Firebase Console
+    }
+
+    // Отзывы жителей: читать и добавлять — все (до 600 символов); менять и удалять — нельзя.
+    match /comments/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.placeId is string
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 600;
+      allow update, delete: if false;
+    }
+  }
+}

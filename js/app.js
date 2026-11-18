@@ -31,12 +31,19 @@
   /* ---------- Отзывы: примеры из data.js + новые (хранятся в браузере) ---------- */
   var KEY = 'bb-comments-v1', saved = {};
   try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
-  BB.comments = function (loc) { return (loc.comments || []).concat(saved[loc.id] || []); };
+  BB.comments = function (loc) {
+    return (loc.comments || []).concat(saved[loc.id] || [], (BB.cloud && BB.cloud.comments[loc.id]) || []);
+  };
   BB.addComment = function (loc, c) {
-    (saved[loc.id] = saved[loc.id] || []).push(c);
-    try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) { /* приватный режим — просто не сохраняем */ }
+    if (BB.cloud) {                                                    // облако Firebase: отзыв увидят все
+      BB.cloud.addComment(loc, c).catch(function (err) { console.warn('Firebase:', err.message); BB.toast(t('cloudError')); });
+    } else {
+      (saved[loc.id] = saved[loc.id] || []).push(c);
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) { /* приватный режим — просто не сохраняем */ }
+    }
     updateStats(false);
   };
+  document.addEventListener('bb:comments', function () { updateStats(false); });
 
   /* Статус точки с учётом выбранной группы людей:
      если барьер не мешает выбранной группе — для неё место «доступно» */
@@ -88,6 +95,17 @@
     m._bbHidden = !isVisible(loc);
     if (!m._bbHidden) m.addTo(map);
     renderList(); updateStats(false);
+  };
+
+  /* Убрать точку (её удалили из облака) */
+  BB.removePlace = function (id) {
+    var loc = byId[id]; if (!loc) return;
+    if (state.activeId === id) BB.closePlace();
+    if (markers[id]) { map.removeLayer(markers[id]); delete markers[id]; }
+    delete byId[id];
+    var i = LOC.indexOf(loc); if (i >= 0) LOC.splice(i, 1);
+    renderList(); updateStats(false);
+    document.dispatchEvent(new CustomEvent('bb:places'));
   };
 
   /* Фильтр «показать только места с этой проблемой» (из статистики и бота) */

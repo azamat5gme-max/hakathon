@@ -113,6 +113,16 @@
     BB.toast(t('thanksToast'));
   });
 
+  /* Новые отзывы из облака (с других устройств) — обновляем открытую карточку */
+  document.addEventListener('bb:comments', function () {
+    var list = document.getElementById('cmtList');
+    if (!current || !list) return;
+    var cs = BB.comments(current);
+    if (list.querySelectorAll('.cmt').length === cs.length) return;
+    list.innerHTML = cs.length ? cs.map(function (c) { return commentHTML(c); }).join('') : '<div class="cmt-empty">' + esc(t('noReviews')) + '</div>';
+    document.getElementById('cmtCount').textContent = cs.length;
+  });
+
   document.getElementById('panelClose').addEventListener('click', function () { BB.closePlace(); });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && current && document.body.classList.contains('app-ready')) BB.closePlace();
