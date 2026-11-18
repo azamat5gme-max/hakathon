@@ -114,3 +114,8 @@ Object.assign(window.I18N.en, {
 window.I18N.ru.noPlaces = 'Пока нет точек — добавьте первую кнопкой «+ Сообщить о барьере» 📍';
 window.I18N.ky.noPlaces = 'Азырынча жерлер жок — биринчисин «+ Тоскоолдук тууралуу кабарлоо» баскычы менен кошуңуз 📍';
 window.I18N.en.noPlaces = 'No places yet — add the first one with “+ Report a barrier” 📍';
+
+/* В браузере мало места — метка сохранена без фото */
+window.I18N.ru.savedNoPhoto = 'В браузере мало места — метка сохранена без фото';
+window.I18N.ky.savedNoPhoto = 'Браузерде орун аз — белги сүрөтсүз сакталды';
+window.I18N.en.savedNoPhoto = 'Not enough browser space — the pin was saved without the photo';

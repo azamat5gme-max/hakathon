@@ -245,17 +245,17 @@
     document.body.classList.add('panel-open');
   }
 
-  /* Фото уменьшаем до ~1000 px — быстро грузится и помещается в браузер */
+  /* Фото уменьшаем до ~800 px (≈60–100 КБ) — быстро грузится и больше меток помещается в браузер */
   function compress(file) {
     return new Promise(function (resolve, reject) {
       var img = new Image(), url = URL.createObjectURL(file);
       img.onload = function () {
-        var k = Math.min(1, 1000 / Math.max(img.naturalWidth, img.naturalHeight));
+        var k = Math.min(1, 800 / Math.max(img.naturalWidth, img.naturalHeight));
         var c = document.createElement('canvas');
         c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
         URL.revokeObjectURL(url);
-        resolve(c.toDataURL('image/jpeg', 0.72));
+        resolve(c.toDataURL('image/jpeg', 0.6));
       };
       img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('bad image')); };
       img.src = url;
@@ -299,17 +299,26 @@
     var btn = content.querySelector('.rform__submit');
     if (btn) btn.disabled = true;
     var fail = function () { BB.toast(t('storageFull')); if (btn) btn.disabled = false; };
+    var saveHere = function () {                                       // в браузер; места мало → без фото
+      r.local = true;
+      if (saveLocal(r)) return true;
+      if (r.photo) {
+        r.photo = '';
+        if (saveLocal(r)) { setTimeout(function () { BB.toast(t('savedNoPhoto')); }, 2800); return true; }
+      }
+      return false;
+    };
     var done = function (saved) {
       draft = null; stopPlacing();
       ingest(saved);
       openPending(saved.id);
       BB.toast(t('sentForReview'));
     };
-    if (!serverMode) { if (saveLocal(r)) { r.local = true; done(r); } else fail(); return; }
+    if (!serverMode) { if (saveHere()) done(r); else fail(); return; }
     fetch('/api/reports', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(r) })
       .then(function (res) { if (!res.ok) throw new Error(res.status); return res.json(); })
       .then(function (d) { done(d.report); })
-      .catch(function () { if (saveLocal(r)) { r.local = true; done(r); } else fail(); });
+      .catch(function () { if (saveHere()) done(r); else fail(); });
   }
 
   /* Конфетти, когда метку одобрили */
