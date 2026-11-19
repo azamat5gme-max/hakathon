@@ -1,8 +1,13 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="auto">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    /* Тема (светлая / тёмная / как на телефоне) — ставим сразу, до отрисовки, чтобы не было белой вспышки */
+    (function () { var th = 'auto'; try { th = localStorage.getItem('bb-theme') || 'auto'; } catch (e) {}
+      document.documentElement.setAttribute('data-theme', /^(auto|light|dark)$/.test(th) ? th : 'auto'); })();
+  </script>
   <title>Infranalysis — карта доступности</title>
   <meta name="description" content="Infranalysis — карта доступности города: места, где людям на колясках, пожилым и родителям с колясками трудно пройти. Фото, адреса, отзывы и проверка жителями.">
   <meta name="theme-color" content="#ffffff">
@@ -11,12 +16,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Unbounded:wght@900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
   <!-- ?v=… — версия файлов: update-github.bat меняет её сам, чтобы браузеры сразу брали новые файлы -->
-  <link rel="stylesheet" href="css/intro.css?v=202611192314">
-  <link rel="stylesheet" href="css/style.css?v=202611192314">
-  <link rel="stylesheet" href="css/panel.css?v=202611192314">
-  <link rel="stylesheet" href="css/chat.css?v=202611192314">
-  <link rel="stylesheet" href="css/report.css?v=202611192314">
-  <link rel="stylesheet" href="css/rewards.css?v=202611192314">
+  <link rel="stylesheet" href="css/intro.css?v=202611192334">
+  <link rel="stylesheet" href="css/style.css?v=202611192334">
+  <link rel="stylesheet" href="css/panel.css?v=202611192334">
+  <link rel="stylesheet" href="css/chat.css?v=202611192334">
+  <link rel="stylesheet" href="css/report.css?v=202611192334">
+  <link rel="stylesheet" href="css/rewards.css?v=202611192334">
+  <link rel="stylesheet" href="css/theme.css?v=202611192334">
 </head>
 <body>
 
@@ -81,6 +87,9 @@
       <div class="topbar__btns">
         <button class="tbtn tbtn--xp" id="rewardsBtn" type="button">
           <span data-icon="trophy"></span><span id="xpLabel">0 XP</span><span class="tbtn__streak" id="streakLabel" hidden></span>
+        </button>
+        <button class="tbtn" id="themeBtn" type="button">
+          <span data-theme-icon></span><span class="tbtn__label" data-theme-label>Авто</span>
         </button>
         <button class="tbtn" id="statsBtn" type="button">
           <span data-icon="chart-bar"></span><span class="tbtn__label" data-i18n="statsBtn">Статистика</span>
@@ -155,19 +164,20 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-  <script src="js/icons.js?v=202611192314"></script>
-  <script src="js/i18n.js?v=202611192314"></script>
-  <script src="js/i18n-reports.js?v=202611192314"></script>
-  <script src="js/i18n-rewards.js?v=202611192314"></script>
-  <script src="js/cloud-config.js?v=202611192314"></script>
-  <script src="js/cloud.js?v=202611192314"></script>
-  <script src="js/data.js?v=202611192314"></script>
-  <script src="js/intro.js?v=202611192314"></script>
-  <script src="js/app.js?v=202611192314"></script>
-  <script src="js/panel.js?v=202611192314"></script>
-  <script src="js/bot.js?v=202611192314"></script>
-  <script src="js/report.js?v=202611192314"></script>
-  <script src="js/stats.js?v=202611192314"></script>
-  <script src="js/rewards.js?v=202611192314"></script>
+  <script src="js/icons.js?v=202611192334"></script>
+  <script src="js/i18n.js?v=202611192334"></script>
+  <script src="js/i18n-reports.js?v=202611192334"></script>
+  <script src="js/i18n-rewards.js?v=202611192334"></script>
+  <script src="js/theme.js?v=202611192334"></script>
+  <script src="js/cloud-config.js?v=202611192334"></script>
+  <script src="js/cloud.js?v=202611192334"></script>
+  <script src="js/data.js?v=202611192334"></script>
+  <script src="js/intro.js?v=202611192334"></script>
+  <script src="js/app.js?v=202611192334"></script>
+  <script src="js/panel.js?v=202611192334"></script>
+  <script src="js/bot.js?v=202611192334"></script>
+  <script src="js/report.js?v=202611192334"></script>
+  <script src="js/stats.js?v=202611192334"></script>
+  <script src="js/rewards.js?v=202611192334"></script>
 </body>
 </html>

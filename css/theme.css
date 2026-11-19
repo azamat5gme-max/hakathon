@@ -1,0 +1,55 @@
+/* ================= ТЕМА: светлая / тёмная / как на телефоне =================
+   <html data-theme="light|dark|auto">. «auto» берёт тему из настроек телефона/компьютера. */
+
+/* Тёмные цвета — одинаковые для «Тёмная» и для «Авто», когда на устройстве включена тёмная тема */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0f1115; --surface: #151821; --surface-2: #1b1f2a; --surface-3: #232838;
+  --line: #2a3040; --line-2: #3a4256;
+  --text: #e6e9ef; --text-2: #c3c9d5; --muted: #8b93a7;
+  --accent: #4f74f5; --accent-hover: #6b8cff; --accent-soft: rgba(79, 116, 245, .14); --accent-line: rgba(79, 116, 245, .4);
+  --accent-soft-2: rgba(79, 116, 245, .24); --accent-2nd: rgba(107, 140, 255, .5); --on-accent-soft: #c7d2fe;
+  --bad: #f87171; --bad-soft: rgba(248, 113, 113, .12); --on-bad: #fecaca;
+  --mid: #fbbf24; --mid-soft: rgba(251, 191, 36, .12); --on-mid: #fde68a; --mid-line: rgba(251, 191, 36, .35);
+  --mid-strong: #fbbf24; --on-mid-solid: #111827;
+  --good: #4ade80; --good-soft: rgba(74, 222, 128, .12); --on-good: #bbf7d0; --good-line: rgba(74, 222, 128, .3);
+  --streak: #fb923c; --streak-text: #fdba74; --streak-soft: rgba(251, 146, 60, .12); --streak-line: rgba(251, 146, 60, .3);
+  --overlay: rgba(21, 24, 33, .92); --attr-bg: rgba(15, 17, 21, .75);
+  --tip-bg: #e6e9ef; --tip-text: #0f1115; --map-bg: #0b0d11;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .35);
+  --shadow-lg: 0 18px 50px rgba(0, 0, 0, .5);
+}
+:root[data-theme="dark"] .leaflet-tile-pane { filter: invert(1) hue-rotate(185deg) brightness(.85) contrast(.9) saturate(.35); }
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] {
+    color-scheme: dark;
+    --bg: #0f1115; --surface: #151821; --surface-2: #1b1f2a; --surface-3: #232838;
+    --line: #2a3040; --line-2: #3a4256;
+    --text: #e6e9ef; --text-2: #c3c9d5; --muted: #8b93a7;
+    --accent: #4f74f5; --accent-hover: #6b8cff; --accent-soft: rgba(79, 116, 245, .14); --accent-line: rgba(79, 116, 245, .4);
+    --accent-soft-2: rgba(79, 116, 245, .24); --accent-2nd: rgba(107, 140, 255, .5); --on-accent-soft: #c7d2fe;
+    --bad: #f87171; --bad-soft: rgba(248, 113, 113, .12); --on-bad: #fecaca;
+    --mid: #fbbf24; --mid-soft: rgba(251, 191, 36, .12); --on-mid: #fde68a; --mid-line: rgba(251, 191, 36, .35);
+    --mid-strong: #fbbf24; --on-mid-solid: #111827;
+    --good: #4ade80; --good-soft: rgba(74, 222, 128, .12); --on-good: #bbf7d0; --good-line: rgba(74, 222, 128, .3);
+    --streak: #fb923c; --streak-text: #fdba74; --streak-soft: rgba(251, 146, 60, .12); --streak-line: rgba(251, 146, 60, .3);
+    --overlay: rgba(21, 24, 33, .92); --attr-bg: rgba(15, 17, 21, .75);
+    --tip-bg: #e6e9ef; --tip-text: #0f1115; --map-bg: #0b0d11;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .35);
+    --shadow-lg: 0 18px 50px rgba(0, 0, 0, .5);
+  }
+  :root[data-theme="auto"] .leaflet-tile-pane { filter: invert(1) hue-rotate(185deg) brightness(.85) contrast(.9) saturate(.35); }
+}
+
+/* Плавная смена темы (только цвета, без «прыжков») */
+:root.theme-anim, :root.theme-anim * {
+  transition: background-color .3s ease, border-color .3s ease, color .3s ease, fill .3s ease !important;
+}
+
+/* На телефоне в шапке мало места — кнопку «Интро» прячем (она нужна для показа на ноутбуке) */
+@media (max-width: 760px) {
+  #replayIntro { display: none; }
+}

@@ -37,15 +37,15 @@ body.placing .leaflet-container { cursor: crosshair; }
 .pin--new .pin__pulse { display: block; border-color: var(--accent); animation: pulse 1.4s ease-out infinite; }
 .pin__user {
   position: absolute; right: -5px; top: -5px; z-index: 2; width: 18px; height: 18px; display: grid; place-items: center;
-  border-radius: 50%; background: #fff; color: var(--text-2); box-shadow: 0 1px 3px rgba(15, 23, 42, .3);
+  border-radius: 50%; background: var(--surface); color: var(--text-2); box-shadow: 0 1px 3px rgba(15, 23, 42, .3);
 }
 .pin__user .ic { width: 12px; height: 12px; }
 .pin--pending .pin__body {
-  background: #fff; color: var(--muted); border: 2px dashed #94a3b8; box-shadow: 0 2px 6px rgba(15, 23, 42, .15);
+  background: var(--surface); color: var(--muted); border: 2px dashed #94a3b8; box-shadow: 0 2px 6px rgba(15, 23, 42, .15);
 }
 .pin__count {
   position: absolute; left: 50%; top: -18px; transform: translateX(-50%); padding: 1px 6px; border-radius: 6px;
-  font: 700 10px var(--font); color: #fff; background: var(--mid); white-space: nowrap; box-shadow: 0 1px 3px rgba(15, 23, 42, .25);
+  font: 700 10px var(--font); color: var(--on-mid-solid); background: var(--mid); white-space: nowrap; box-shadow: 0 1px 3px rgba(15, 23, 42, .25);
 }
 .pin.is-pop .pin__body { animation: popGlow 1.4s ease-out; }
 @keyframes popGlow {
@@ -55,9 +55,9 @@ body.placing .leaflet-container { cursor: crosshair; }
 }
 .tag.tag--user { color: var(--accent); background: var(--accent-soft); border-color: var(--accent-line); }
 .tag.tag--user .ic { color: var(--accent); }
-.tag.tag--ok { color: #166534; background: var(--good-soft); border-color: #bbf7d0; }
+.tag.tag--ok { color: var(--on-good); background: var(--good-soft); border-color: var(--good-line); }
 .tag.tag--ok .ic { color: var(--good); }
-.tag.tag--pending { color: #92400e; background: var(--mid-soft); border-color: #fcd9a1; margin-bottom: 8px; }
+.tag.tag--pending { color: var(--on-mid); background: var(--mid-soft); border-color: var(--mid-line); margin-bottom: 8px; }
 .tag.tag--pending .ic { color: var(--mid); }
 
 /* ---------- Форма сообщения ---------- */
@@ -117,7 +117,7 @@ body.placing .leaflet-container { cursor: crosshair; }
 }
 .review__btn:hover { background: var(--accent-hover); }
 .review__btn:disabled { cursor: wait; }
-.review__btn.is-checking { background: var(--text-2); }
+.review__btn.is-checking { background: #475569; }
 .review__btn.is-checking .ic { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .review__note {
@@ -125,7 +125,7 @@ body.placing .leaflet-container { cursor: crosshair; }
   color: var(--text-2); background: var(--surface); border: 1px solid var(--line);
 }
 .review__note .ic { flex: none; margin-top: 1px; color: var(--muted); }
-.review__note.is-ok { color: #166534; background: var(--good-soft); border-color: #bbf7d0; }
+.review__note.is-ok { color: var(--on-good); background: var(--good-soft); border-color: var(--good-line); }
 .review__note.is-ok .ic { color: var(--good); }
 
 /* ---------- Конфетти (сдержанное) ---------- */
@@ -159,7 +159,7 @@ body.placing .leaflet-container { cursor: crosshair; }
 .spanel__nums b { display: block; font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .spanel__nums .is-user b { color: var(--accent); }
 .spanel__nums span { font-size: 12px; color: var(--muted); }
-.spanel__pending { display: flex; align-items: center; gap: 6px; margin: 8px 0; font-size: 13px; font-weight: 600; color: #b45309; }
+.spanel__pending { display: flex; align-items: center; gap: 6px; margin: 8px 0; font-size: 13px; font-weight: 600; color: var(--mid-strong); }
 .spanel__pending .ic { width: 16px; height: 16px; }
 .spanel__hint { margin: -4px 0 10px; font-size: 12px; color: var(--muted); }
 .spanel__rows, .spanel__groups { display: grid; gap: 2px; }
@@ -178,7 +178,7 @@ body.placing .leaflet-container { cursor: crosshair; }
 .srow__bar { position: relative; height: 8px; border-radius: 4px; background: var(--surface-3); overflow: hidden; }
 .srow__bar i, .srow__bar em { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 4px; }
 .srow__bar i { background: var(--accent); }
-.srow__bar em { background: #93b4fb; }
+.srow__bar em { background: var(--accent-2nd); }
 .sgroup .srow__bar i { background: var(--text-2); }
 .spanel.is-open .srow__bar i { animation: barGrow .7s var(--smooth) forwards; animation-delay: calc(var(--i, 0) * 40ms + .15s); }
 .spanel.is-open .srow__bar em { animation: barGrowU .7s var(--smooth) forwards; animation-delay: calc(var(--i, 0) * 40ms + .3s); }

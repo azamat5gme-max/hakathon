@@ -16,6 +16,12 @@
   --bad: #dc2626;  --bad-soft: #fef2f2;
   --mid: #d97706;  --mid-soft: #fffbeb;
   --good: #16a34a; --good-soft: #f0fdf4;
+  --accent-soft-2: #e2eaff; --accent-2nd: #93b4fb; --on-accent-soft: #1e3a8a;
+  --on-bad: #7f1d1d; --on-mid: #92400e; --mid-line: #fcd9a1; --mid-strong: #b45309; --on-mid-solid: #ffffff;
+  --on-good: #166534; --good-line: #bbf7d0;
+  --streak: #ea580c; --streak-text: #c2410c; --streak-soft: #fff7ed; --streak-line: #fed7aa;
+  --overlay: rgba(255, 255, 255, .92); --attr-bg: rgba(255, 255, 255, .85);
+  --tip-bg: #0f172a; --tip-text: #ffffff; --map-bg: #f2f3f5;
   --radius: 12px;
   --radius-sm: 8px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, .06);
@@ -38,7 +44,7 @@ button, input, textarea, select { font: inherit; color: inherit; }
 .ic { width: 18px; height: 18px; flex: none; display: inline-block; vertical-align: middle; }
 [data-icon] { display: inline-flex; }
 .app { position: fixed; inset: 0; }
-.map { position: absolute; inset: var(--header) 0 0 0; background: #f2f3f5; }
+.map { position: absolute; inset: var(--header) 0 0 0; background: var(--map-bg); }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
@@ -76,21 +82,21 @@ body.app-ready .topbar { animation: fadeIn .5s var(--smooth) forwards; }
 .tbtn:hover { background: var(--surface-2); border-color: var(--line-2); color: var(--text); }
 .tbtn:focus-visible, .chip:focus-visible, .legend__row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tbtn--xp { color: var(--accent); border-color: var(--accent-line); background: var(--accent-soft); }
-.tbtn--xp:hover { background: #e2eaff; color: var(--accent-hover); border-color: var(--accent-line); }
-.tbtn__streak { display: inline-flex; align-items: center; gap: 2px; padding-left: 8px; margin-left: 2px; border-left: 1px solid var(--accent-line); color: #ea580c; }
+.tbtn--xp:hover { background: var(--accent-soft-2); color: var(--accent-hover); border-color: var(--accent-line); }
+.tbtn__streak { display: inline-flex; align-items: center; gap: 2px; padding-left: 8px; margin-left: 2px; border-left: 1px solid var(--accent-line); color: var(--streak); }
 .tbtn__streak .ic { width: 15px; height: 15px; }
 .tbtn.is-bump { animation: bump .5s var(--ease); }
 @keyframes bump { 40% { transform: scale(1.08); } }
 
 /* ---------- Карта ---------- */
-.leaflet-container { font-family: var(--font); background: #f2f3f5; }
+.leaflet-container { font-family: var(--font); background: var(--map-bg); }
 .leaflet-tile-pane { filter: saturate(.45) contrast(.98) brightness(1.03); }
 .leaflet-right .leaflet-control { margin-right: 12px; }
 .leaflet-top .leaflet-control { margin-top: 12px; }
 .leaflet-bar { border: 1px solid var(--line) !important; box-shadow: var(--shadow-sm) !important; border-radius: var(--radius-sm) !important; overflow: hidden; }
 .leaflet-bar a { background: var(--surface) !important; color: var(--text-2) !important; border-bottom-color: var(--line) !important; }
 .leaflet-bar a:hover { background: var(--surface-2) !important; }
-.leaflet-control-attribution { background: rgba(255, 255, 255, .85) !important; color: var(--muted) !important; font-size: 10px; }
+.leaflet-control-attribution { background: var(--attr-bg) !important; color: var(--muted) !important; font-size: 10px; }
 .leaflet-control-attribution a { color: var(--text-2) !important; }
 .pin-wrap { background: none; border: 0; }
 
@@ -120,10 +126,10 @@ body.app-ready .topbar { animation: fadeIn .5s var(--smooth) forwards; }
 @keyframes pinOut { to { opacity: 0; transform: scale(.6); } }
 .pin.is-back { animation: popIn .3s var(--ease) both; }
 .leaflet-tooltip.pin-tip {
-  background: var(--text); color: #fff; border: 0; border-radius: 6px; padding: 5px 9px;
+  background: var(--tip-bg); color: var(--tip-text); border: 0; border-radius: 6px; padding: 5px 9px;
   font: 600 12px var(--font); box-shadow: var(--shadow);
 }
-.leaflet-tooltip-top.pin-tip::before { border-top-color: var(--text); }
+.leaflet-tooltip-top.pin-tip::before { border-top-color: var(--tip-bg); }
 
 /* ---------- Боковая панель: фильтры и список ---------- */
 .side {
@@ -154,8 +160,8 @@ body.app-ready .side { animation: fadeIn .5s .1s var(--smooth) forwards; }
 .chip:hover { background: var(--surface-2); }
 .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent); }
 .chip[aria-pressed="true"] .ic { color: var(--accent); }
-.chip.chip--problem { background: var(--mid-soft); border-color: #fcd9a1; color: #92400e; }
-.chip.chip--problem .ic { color: #b45309; }
+.chip.chip--problem { background: var(--mid-soft); border-color: var(--mid-line); color: var(--on-mid); }
+.chip.chip--problem .ic { color: var(--mid-strong); }
 .legend { display: grid; gap: 2px; }
 .legend__row {
   display: flex; align-items: center; gap: 10px; width: calc(100% + 16px); padding: 6px 8px; margin: 0 -8px;
@@ -174,7 +180,7 @@ body.app-ready .side { animation: fadeIn .5s .1s var(--smooth) forwards; }
 .plist li.is-active { background: var(--accent-soft); }
 .plist__icon {
   width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 8px;
-  background: color-mix(in srgb, var(--c) 11%, white); color: var(--c);
+  background: color-mix(in srgb, var(--c) 13%, var(--surface)); color: var(--c);
 }
 .plist__text { min-width: 0; flex: 1; }
 .plist__title { font-weight: 600; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -189,7 +195,7 @@ body.app-ready .side { animation: fadeIn .5s .1s var(--smooth) forwards; }
 /* ---------- Уведомление ---------- */
 .toast {
   position: fixed; left: 50%; bottom: 76px; z-index: 3000; display: flex; align-items: center; gap: 8px;
-  max-width: calc(100% - 32px); padding: 10px 14px; border-radius: 10px; background: #0f172a; color: #fff;
+  max-width: calc(100% - 32px); padding: 10px 14px; border-radius: 10px; background: var(--tip-bg); color: var(--tip-text);
   font-size: 13.5px; font-weight: 500; box-shadow: var(--shadow-lg);
   transform: translate(-50%, 16px); opacity: 0; transition: transform .25s var(--ease), opacity .25s; pointer-events: none;
 }
