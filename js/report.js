@@ -34,9 +34,14 @@
   function isPublic(r) { return !r.review || r.review === 'approved'; }
 
   /* Метка пришла (с сервера или из браузера): одобренная → на карту, на проверке → «призрак» */
+  function act(type, id, extra) {                                     // для наград (rewards.js)
+    var d = { type: type, id: id }; if (extra) Object.keys(extra).forEach(function (k) { d[k] = extra[k]; });
+    document.dispatchEvent(new CustomEvent('bb:action', { detail: d }));
+  }
   function ingest(r) {
     if (r.review === 'rejected') { removeGhost(r.id); return; }
     if (isPublic(r)) {
+      if (r.user && r.review === 'approved' && r.uid && r.uid === BB.uid) act('approved', r.id);   // моя метка прошла проверку
       if (pending[r.id]) popOut(r);
       else if (!BB.byId[r.id]) BB.addPlace(r);
       return;
@@ -147,9 +152,9 @@
   /* ---------- Метки на проверке («призраки») ---------- */
   function ghostIcon(r) {
     var n = (r.confirms || []).length;
-    return L.divIcon({ className: 'pin-wrap', iconSize: [44, 54], iconAnchor: [22, 48], tooltipAnchor: [0, -46],
-      html: '<div class="pin pin--pending" style="--c:#8b93a7"><span class="pin__pulse"></span><span class="pin__body"><span class="pin__icon">' +
-        C[r.category].icon + '</span></span><span class="pin__user">⏳</span><span class="pin__count">' + n + '/' + NEED + '</span></div>' });
+    return L.divIcon({ className: 'pin-wrap', iconSize: [36, 46], iconAnchor: [18, 42], tooltipAnchor: [0, -40],
+      html: '<div class="pin pin--pending" style="--c:#94a3b8"><span class="pin__pulse"></span><span class="pin__body">' +
+        icon(C[r.category].icon) + '</span><span class="pin__user">' + icon('hourglass') + '</span><span class="pin__count">' + n + '/' + NEED + '</span></div>' });
   }
   function addGhost(r) {
     var m = L.marker(BB_latlng(r), { icon: ghostIcon(r), zIndexOffset: -100 });
@@ -199,21 +204,23 @@
     var n = (r.confirms || []).length, mine = r.uid && r.uid === BB.uid, did = (r.confirms || []).indexOf(BB.uid) >= 0;
     var dots = '';
     for (var i = 0; i < NEED; i++) dots += '<i' + (i < n ? ' class="is-on"' : '') + '></i>';
-    var action = mode === 'local' ? '<div class="review__note">' + esc(t('needServer')) + '</div>'
-      : mine ? '<div class="review__note">' + esc(t('yourReport', { need: NEED })) + '</div>'
-      : did ? '<div class="review__note is-ok">' + esc(t('youConfirmed', { n: Math.max(0, NEED - n) })) + '</div>'
-      : '<button type="button" class="review__btn" id="confirmBtn">' + esc(t('confirmBtn')) + '</button>';
-    var probs = (r.problems || []).map(function (k) { return '<li>' + (P[k] ? P[k].icon + ' ' + esc(T(P[k].label)) : esc(k)) + '</li>'; }).join('');
+    var action = mode === 'local' ? '<div class="review__note">' + icon('info-circle') + '<span>' + esc(t('needServer')) + '</span></div>'
+      : mine ? '<div class="review__note">' + icon('user') + '<span>' + esc(t('yourReport', { need: NEED })) + '</span></div>'
+      : did ? '<div class="review__note is-ok">' + icon('circle-check') + '<span>' + esc(t('youConfirmed', { n: Math.max(0, NEED - n) })) + '</span></div>'
+      : '<button type="button" class="review__btn" id="confirmBtn">' + icon('checks') + '<span>' + esc(t('confirmBtn')) + '</span></button>';
+    var probs = (r.problems || []).map(function (k) {
+      return '<li>' + icon(P[k] ? P[k].icon : 'circle-x') + '<span>' + esc(P[k] ? T(P[k].label) : k) + '</span></li>';
+    }).join('');
     content.innerHTML =
       (r.photo ? '<div class="ph"><img src="' + esc(r.photo) + '" alt=""></div>' : '') +
       '<div class="pbody">' +
-        '<div class="rv" style="--i:0"><span class="tag tag--pending">' + esc(t('pendingBadge')) + '</span><h2>' + esc(T(r.title)) + '</h2></div>' +
+        '<div class="rv" style="--i:0"><span class="tag tag--pending">' + icon('hourglass') + esc(t('pendingBadge')) + '</span><h2>' + esc(T(r.title)) + '</h2></div>' +
         '<div class="review rv" style="--i:1"><div class="review__dots">' + dots + '</div>' +
           '<p>' + esc(t('pendingInfo', { n: n, need: NEED })) + '</p>' + action + '</div>' +
         (probs ? '<div class="rv" style="--i:2"><div class="ptitle">' + esc(t('wrong')) + '</div><ul class="issues">' + probs + '</ul></div>' : '') +
         (r.text ? '<div class="rv" style="--i:3"><div class="tip">' + esc(r.text) + '</div></div>' : '') +
-        '<div class="rv" style="--i:4"><div class="tags"><span class="tag">' + C[r.category].icon + ' ' + esc(T(C[r.category].label)) + '</span>' +
-          '<span class="tag">✍️ ' + esc(t('reportedBy', { name: r.author || t('anon') })) + '</span></div></div>' +
+        '<div class="rv" style="--i:4"><div class="tags"><span class="tag">' + icon(C[r.category].icon) + esc(T(C[r.category].label)) + '</span>' +
+          '<span class="tag">' + icon('user') + esc(t('reportedBy', { name: r.author || t('anon') })) + '</span></div></div>' +
       '</div>';
     content.scrollTop = 0;
   }
@@ -224,7 +231,7 @@
     if (!btn || !openId || !pending[openId]) return;
     var id = openId, willCheck = (pending[id].r.confirms || []).length + 1 >= NEED, t0 = Date.now();
     btn.disabled = true;
-    btn.textContent = willCheck ? t('aiChecking') : '…';
+    btn.innerHTML = icon(willCheck ? 'refresh' : 'clock') + '<span>' + esc(willCheck ? t('aiChecking') : '…') + '</span>';
     if (willCheck) btn.classList.add('is-checking');
     confirmCall(id)
       .then(function (x) {
@@ -236,6 +243,7 @@
           }
           var r = x.d.report;
           if (r.review === 'rejected') { removeGhost(id); BB.toast(t('rejectedToast', { reason: T(r.ai && r.ai.reason) || '' })); return; }
+          act('confirm', id);
           ingest(r);
         }, willCheck ? Math.max(0, 1600 - (Date.now() - t0)) : 0);
       })
@@ -250,9 +258,9 @@
     document.body.classList.add('placing');
     banner = document.createElement('div');
     banner.className = 'place-banner';
-    banner.innerHTML = '<span>' + esc(t('placeHint')) + '</span>' +
-      '<button type="button" class="place-banner__here">' + esc(t('hereBtn')) + '</button>' +
-      '<button type="button" class="place-banner__x">' + esc(t('cancel')) + '</button>';
+    banner.innerHTML = icon('map-pin') + '<span>' + esc(t('placeHint')) + '</span>' +
+      '<button type="button" class="place-banner__here">' + icon('current-location') + esc(t('hereBtn')) + '</button>' +
+      '<button type="button" class="place-banner__x">' + icon('x') + esc(t('cancel')) + '</button>';
     banner.querySelector('.place-banner__here').addEventListener('click', useMyLocation);
     banner.querySelector('.place-banner__x').addEventListener('click', stopPlacing);
     $('app').appendChild(banner);
@@ -271,7 +279,7 @@
       temp = L.marker(latlng, {
         draggable: true, zIndexOffset: 2000,
         icon: L.divIcon({ className: 'pin-wrap', iconSize: [44, 54], iconAnchor: [22, 48],
-          html: '<div class="pin pin--new" style="--c:#7c5cff"><span class="pin__pulse"></span><span class="pin__body"><span class="pin__icon">📍</span></span></div>' })
+          html: '<div class="pin pin--new" style="--c:#1d4ed8"><span class="pin__pulse"></span><span class="pin__body">' + icon('plus') + '</span></div>' })
       }).addTo(map);
       temp.on('dragend', function () { if (draft) draft.latlng = toArr(temp.getLatLng()); });
     } else {
@@ -300,13 +308,13 @@
     return Object.keys(dict).map(function (k) {
       var d = dict[k];
       return '<label class="rchip"><input type="' + type + '" name="' + name + '" value="' + k + '"' +
-        (checked && checked.indexOf(k) >= 0 ? ' checked' : '') + '><span>' + (d.icon ? d.icon + ' ' : '') + esc(T(d.label)) + '</span></label>';
+        (checked && checked.indexOf(k) >= 0 ? ' checked' : '') + '><span>' + (d.icon ? icon(d.icon) : '') + esc(T(d.label)) + '</span></label>';
     }).join('');
   }
   function sec(i, key, html) { return '<div class="rsec rv" style="--i:' + i + '"><div class="ptitle">' + esc(t(key)) + '</div>' + html + '</div>'; }
   function openForm() {
     draft = { latlng: null, photo: '' };
-    var sev = { bad: { icon: '🔴', label: t('sevBad') }, mid: { icon: '🟡', label: t('sevMid') }, good: { icon: '🟢', label: t('sevGood') } };
+    var sev = { bad: { icon: 'circle-x', label: t('sevBad') }, mid: { icon: 'alert-triangle', label: t('sevMid') }, good: { icon: 'circle-check', label: t('sevGood') } };
     var name = '';
     try { name = localStorage.getItem('bb-name') || ''; } catch (e) { /* ок */ }
     content.innerHTML = '<form class="rform" id="rform">' +
@@ -318,9 +326,10 @@
       sec(5, 'titleQ', '<input id="rTitle" maxlength="80" placeholder="' + esc(t('titlePh')) + '">' +
         '<textarea id="rText" maxlength="600" placeholder="' + esc(t('textPh')) + '"></textarea>') +
       '<div class="rv" style="--i:6"><label class="rphoto"><input type="file" id="rPhoto" accept="image/*">' +
-        '<span id="rPhotoLbl">' + esc(t('photoBtn')) + '</span></label><div class="rphoto__preview" id="rPreview"></div></div>' +
+        '<span>' + icon('camera') + '<span id="rPhotoLbl">' + esc(t('photoBtn')) + '</span></span></label><div class="rphoto__preview" id="rPreview"></div></div>' +
       '<div class="rv" style="--i:7"><input id="rName" maxlength="40" placeholder="' + esc(t('namePh')) + '" value="' + esc(name) + '"></div>' +
-      '<div class="rv" style="--i:8"><button type="submit" class="rform__submit">' + esc(t('submitReport')) + '</button>' +
+      '<div class="rv" style="--i:8"><button type="submit" class="rform__submit">' + icon('map-pin-plus') + esc(t('submitReport')) +
+        '<span class="rform__xp">+10 XP</span></button>' +
         '<div class="cform__note">' + esc(t(mode !== 'local' ? 'savedServer' : 'savedLocal')) + '</div></div>' +
       '</form>';
     content.scrollTop = 0;
@@ -396,6 +405,7 @@
       ingest(saved);
       openPending(saved.id);
       BB.toast(t('sentForReview'));
+      act('report', saved.id, { photo: !!saved.photo });
     };
     if (mode === 'cloud') {                                             // в облако — сразу видно всем
       cloud.db.collection('reports').doc(r.id).set(forCloud(r))
@@ -411,10 +421,11 @@
   }
 
   /* Конфетти, когда метку одобрили */
+  BB.celebrate = function () { celebrate(); };
   function celebrate() {
-    var box = document.createElement('div'), colors = ['#7c5cff', '#00b4ff', '#2ee6a6', '#ffb020', '#ff4d6d'];
+    var box = document.createElement('div'), colors = ['#1d4ed8', '#93b4fb', '#16a34a', '#d97706', '#0f172a'];
     box.className = 'confetti';
-    for (var i = 0; i < 28; i++) {
+    for (var i = 0; i < 18; i++) {
       var s = document.createElement('span'), a = Math.random() * Math.PI * 2, d = 90 + Math.random() * 160;
       s.style.cssText = '--x:' + Math.round(Math.cos(a) * d) + 'px;--y:' + Math.round(Math.sin(a) * d - 60) + 'px;--r:' +
         Math.round(Math.random() * 720) + 'deg;background:' + colors[i % colors.length] + ';animation-delay:' + Math.round(Math.random() * 120) + 'ms';
@@ -439,7 +450,7 @@
     Object.keys(pending).forEach(function (id) { pending[id].m.addTo(map); });
   });
   document.addEventListener('bb:lang', function () {
-    if (banner) banner.querySelector('span').textContent = t('placeHint');
+    if (banner) banner.querySelector(':scope > span').textContent = t('placeHint');
     Object.keys(pending).forEach(function (id) {
       pending[id].m.setTooltipContent(esc(T(pending[id].r.title)) + ' — ' + esc(t('pendingBadge')));
     });

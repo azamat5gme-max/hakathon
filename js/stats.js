@@ -39,25 +39,25 @@
     var s = BB.stats(), max = Math.max(1, s.rows[0] ? s.rows[0].n : 1);
     var maxG = Math.max(1, Math.max.apply(null, Object.keys(s.groups).map(function (g) { return s.groups[g]; })));
     box.querySelector('.spanel__box').innerHTML =
-      '<button class="spanel__close" type="button" aria-label="✕">✕</button>' +
-      '<h2>📊 ' + esc(t('statsTitle')) + '</h2>' +
+      '<button class="spanel__close" type="button" aria-label="Close">' + icon('x') + '</button>' +
+      '<h2>' + icon('chart-bar') + esc(t('statsTitle')) + '</h2>' +
       '<div class="spanel__nums">' +
         '<div><b data-to="' + s.total + '">0</b><span>' + esc(t('statTotal')) + '</span></div>' +
         '<div class="is-user"><b data-to="' + s.users + '">0</b><span>' + esc(t('statUsers')) + '</span></div>' +
         '<div><b data-to="' + s.vol + '">0</b><span>' + esc(t('statVol')) + '</span></div>' +
       '</div>' +
-      (BB.pendingCount && BB.pendingCount() ? '<p class="spanel__pending">⏳ ' + esc(t('statPending')) + ': ' + BB.pendingCount() + '</p>' : '') +
+      (BB.pendingCount && BB.pendingCount() ? '<p class="spanel__pending">' + icon('hourglass') + esc(t('statPending')) + ': ' + BB.pendingCount() + '</p>' : '') +
       '<div class="ptitle">' + esc(t('byProblem')) + '</div><p class="spanel__hint">' + esc(t('statsHint')) + '</p>' +
       '<div class="spanel__rows">' + s.rows.map(function (r, i) {
         return '<button type="button" class="srow' + (r.n ? '' : ' is-zero') + '" data-p="' + r.key + '" style="--i:' + i + ';--w:' + Math.round(r.n / max * 100) + '%">' +
-          '<span class="srow__label">' + P[r.key].icon + ' ' + esc(T(P[r.key].label)) + '</span>' +
+          '<span class="srow__label">' + icon(P[r.key].icon) + esc(T(P[r.key].label)) + '</span>' +
           '<span class="srow__bar"><i></i>' + (r.u ? '<em style="--u:' + Math.round(r.u / max * 100) + '%"></em>' : '') + '</span>' +
           '<b>' + r.n + '</b></button>';
       }).join('') + '</div>' +
       '<div class="ptitle">' + esc(t('byGroup')) + '</div>' +
       '<div class="spanel__groups">' + Object.keys(G).map(function (g, i) {
         return '<div class="sgroup" style="--i:' + i + ';--w:' + Math.round(s.groups[g] / maxG * 100) + '%">' +
-          '<span>' + G[g].icon + ' ' + esc(T(G[g].label)) + '</span><span class="srow__bar"><i></i></span><b>' + s.groups[g] + '</b></div>';
+          '<span class="srow__label">' + icon(G[g].icon) + esc(T(G[g].label)) + '</span><span class="srow__bar"><i></i></span><b>' + s.groups[g] + '</b></div>';
       }).join('') + '</div>';
     box.querySelectorAll('.spanel__nums b').forEach(function (b, i) { countUp(b, +b.getAttribute('data-to'), 250 + i * 120); });
   }

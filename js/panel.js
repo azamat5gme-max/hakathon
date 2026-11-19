@@ -18,14 +18,17 @@
     catch (e) { return dt.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' }); }
   }
   function blk(html) { return '<div class="rv" style="--i:' + (n++) + '">' + html + '</div>'; }
-  function li(s) { return '<li>' + esc(s) + '</li>'; }
+  var CT_ICON = { experience: 'message', change: 'refresh', problem: 'alert-triangle' };
+  var ST_ICON = { bad: 'circle-x', mid: 'alert-triangle', good: 'circle-check' };
+  function li(s) { return '<li>' + icon('circle-x') + '<span>' + esc(s) + '</span></li>'; }
+  function liOk(s) { return '<li>' + icon('circle-check') + '<span>' + esc(s) + '</span></li>'; }
 
   function commentHTML(c, isNew) {
     var type = CT[c.type] ? c.type : 'experience';
     return '<div class="cmt' + (isNew ? ' is-new' : '') + '">' +
       '<div class="cmt__head"><span class="ava" style="--c:' + colorFor(c.name) + '">' + esc(c.name.charAt(0).toUpperCase()) + '</span>' +
       '<span class="cmt__name">' + esc(c.name) + '</span><span class="cmt__date">' + esc(fmtDate(c.date)) + '</span></div>' +
-      '<span class="cmt__type cmt__type--' + type + '">' + esc(T(CT[type])) + '</span>' +
+      '<span class="cmt__type cmt__type--' + type + '">' + icon(CT_ICON[type]) + esc(T(CT[type])) + '</span>' +
       '<div class="cmt__text">' + esc(c.text) + '</div></div>';
   }
 
@@ -33,14 +36,13 @@
     var savedName = '';
     try { savedName = localStorage.getItem('bb-name') || ''; } catch (e) { /* нет доступа — не страшно */ }
     var types = Object.keys(CT).map(function (k, i) {
-      var icon = { experience: '💬', change: '✅', problem: '⚠️' }[k] || '•';
-      return '<label><input type="radio" name="ctype" value="' + k + '"' + (i === 0 ? ' checked' : '') + '><span>' + icon + ' ' + esc(T(CT[k])) + '</span></label>';
+      return '<label><input type="radio" name="ctype" value="' + k + '"' + (i === 0 ? ' checked' : '') + '><span>' + icon(CT_ICON[k]) + esc(T(CT[k])) + '</span></label>';
     }).join('');
     return '<form class="cform" id="cform">' +
       '<input id="cName" maxlength="40" placeholder="' + esc(t('yourName')) + '" value="' + esc(savedName) + '" required>' +
       '<div class="ctypes">' + types + '</div>' +
       '<textarea id="cText" maxlength="600" placeholder="' + esc(t('reviewPh')) + '" required></textarea>' +
-      '<button type="submit">' + esc(t('sendReview')) + '</button>' +
+      '<button type="submit">' + icon('send') + esc(t('sendReview')) + '</button>' +
       '<div class="cform__note">' + esc(t('demoNote')) + '</div>' +
       '</form>';
   }
@@ -53,27 +55,29 @@
     var lat = ll[0].toFixed(6), lng = ll[1].toFixed(6), title = T(loc.title), issues = BB.issues(loc), good = BB.good(loc);
     var photo = loc.photo
       ? '<img src="' + esc(loc.photo) + '" alt="' + esc(title) + '">'
-      : '<div class="ph__placeholder"><div><div class="ph__big">' + C[loc.category].icon + '</div><div class="ph__hint">' + esc(t('photoSoon')) + '</div></div></div>';
+      : '<div class="ph__placeholder" style="--c:' + color + '"><div><div class="ph__big">' + icon(C[loc.category].icon) + '</div>' +
+        '<div class="ph__hint">' + icon('camera') + esc(t('photoSoon')) + '</div></div></div>';
     var affects = loc.affects.length
-      ? loc.affects.map(function (g) { return '<span>' + G[g].icon + ' ' + esc(T(G[g].label)) + '</span>'; }).join('')
-      : '<span>' + esc(t('accessibleAll')) + '</span>';
+      ? loc.affects.map(function (g) { return '<span>' + icon(G[g].icon) + esc(T(G[g].label)) + '</span>'; }).join('')
+      : '<span>' + icon('circle-check') + esc(t('accessibleAll')) + '</span>';
 
     content.innerHTML =
       '<div class="ph" style="--c:' + color + '">' + photo +
-        '<span class="ph__status" style="--c:' + color + '">' + esc(T(S[st].label)) + '</span></div>' +
+        '<span class="ph__status" style="--c:' + color + '">' + icon(ST_ICON[st]) + esc(T(S[st].label)) + '</span></div>' +
       '<div class="pbody">' +
-        blk('<h2>' + esc(title) + '</h2><div class="addr">' + (T(loc.address) ? '<span>📍 ' + esc(T(loc.address)) + '</span>' : '') +
-          '<a href="https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lng + '#map=18/' + lat + '/' + lng + '" target="_blank" rel="noopener">' + esc(t('openMaps')) + '</a></div>') +
-        blk('<div class="tags">' + (loc.user ? '<span class="tag tag--user">' + esc(t('userBadge')) + '</span>' : '') +
-          '<span class="tag">' + C[loc.category].icon + ' ' + esc(T(C[loc.category].label)) + '</span>' +
-          '<span class="tag">🗓 ' + esc(t('checked', { d: fmtDate(loc.checked) })) + '</span>' +
-          (loc.user ? '<span class="tag">✍️ ' + esc(t('reportedBy', { name: loc.author || t('anon') })) + '</span>' : '') +
-          (loc.user && loc.review === 'approved' ? '<span class="tag tag--ok">' + esc(t('approvedBy', { n: (loc.confirms || []).length })) +
+        blk('<h2>' + esc(title) + '</h2><div class="addr">' + (T(loc.address) ? '<span>' + icon('map-pin') + esc(T(loc.address)) + '</span>' : '') +
+          '<a href="https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lng + '#map=18/' + lat + '/' + lng + '" target="_blank" rel="noopener">' +
+          esc(t('openMaps')) + icon('external-link') + '</a></div>') +
+        blk('<div class="tags">' + (loc.user ? '<span class="tag tag--user">' + icon('user') + esc(t('userBadge')) + '</span>' : '') +
+          '<span class="tag">' + icon(C[loc.category].icon) + esc(T(C[loc.category].label)) + '</span>' +
+          '<span class="tag">' + icon('calendar') + esc(t('checked', { d: fmtDate(loc.checked) })) + '</span>' +
+          (loc.user ? '<span class="tag">' + esc(t('reportedBy', { name: loc.author || t('anon') })) + '</span>' : '') +
+          (loc.user && loc.review === 'approved' ? '<span class="tag tag--ok">' + icon('shield-check') + esc(t('approvedBy', { n: (loc.confirms || []).length })) +
             ' · ' + esc(t(loc.ai && loc.ai.by === 'ai' ? 'aiBy' : 'rulesBy')) + '</span>' : '') + '</div>') +
         (issues.length ? blk('<div class="ptitle">' + esc(t('wrong')) + '</div><ul class="issues">' + issues.map(li).join('') + '</ul>') : '') +
-        (good.length ? blk('<div class="ptitle">' + esc(t('goodTitle')) + '</div><ul class="issues issues--ok">' + good.map(li).join('') + '</ul>') : '') +
+        (good.length ? blk('<div class="ptitle">' + esc(t('goodTitle')) + '</div><ul class="issues issues--ok">' + good.map(liOk).join('') + '</ul>') : '') +
         blk('<div class="ptitle">' + esc(t('barrierFor')) + '</div><div class="affects">' + affects + '</div>') +
-        (loc.tip ? blk('<div class="ptitle">' + esc(t('tip')) + '</div><div class="tip">💡 ' + esc(T(loc.tip)) + '</div>') : '') +
+        (loc.tip ? blk('<div class="ptitle">' + esc(t('tip')) + '</div><div class="tip">' + icon('bulb') + '<span>' + esc(T(loc.tip)) + '</span></div>') : '') +
         blk('<div class="ptitle">' + esc(t('reviews')) + ' · <span id="cmtCount">' + comments.length + '</span></div>' +
           '<div class="cmts" id="cmtList">' + (comments.length
             ? comments.map(function (c) { return commentHTML(c); }).join('')
@@ -111,6 +115,7 @@
     textEl.value = '';
     list.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
     BB.toast(t('thanksToast'));
+    document.dispatchEvent(new CustomEvent('bb:action', { detail: { type: 'comment', id: current.id } }));
   });
 
   /* Новые отзывы из облака (с других устройств) — обновляем открытую карточку */

@@ -21,22 +21,22 @@ window.CITY = {
 };
 
 window.CATEGORIES = {
-  bus:    { icon: '🚌', label: { ru: 'Остановки', ky: 'Аялдамалар', en: 'Bus stops' } },
-  park:   { icon: '🌳', label: { ru: 'Парки и дворы', ky: 'Парктар, короолор', en: 'Parks & yards' } },
-  gov:    { icon: '🏛️', label: { ru: 'Гос. здания', ky: 'Мамл. имараттар', en: 'Gov. buildings' } },
-  public: { icon: '🏬', label: { ru: 'Общ. места', ky: 'Коомдук жайлар', en: 'Public places' } }
+  bus:    { icon: 'bus', label: { ru: 'Остановки', ky: 'Аялдамалар', en: 'Bus stops' } },
+  park:   { icon: 'trees', label: { ru: 'Парки и дворы', ky: 'Парктар, короолор', en: 'Parks & yards' } },
+  gov:    { icon: 'building-bank', label: { ru: 'Гос. здания', ky: 'Мамл. имараттар', en: 'Gov. buildings' } },
+  public: { icon: 'building-store', label: { ru: 'Общ. места', ky: 'Коомдук жайлар', en: 'Public places' } }
 };
 
 window.GROUPS = {
-  wheelchair: { icon: '♿', label: { ru: 'Колясочники', ky: 'Арабачадагылар', en: 'Wheelchair users' } },
-  elderly:    { icon: '🧓', label: { ru: 'Пожилые', ky: 'Улгайгандар', en: 'Elderly' } },
-  stroller:   { icon: '👶', label: { ru: 'Мамы с колясками', ky: 'Бала арабалуу апалар', en: 'Parents with strollers' } }
+  wheelchair: { icon: 'wheelchair', label: { ru: 'Колясочники', ky: 'Арабачадагылар', en: 'Wheelchair users' } },
+  elderly:    { icon: 'old', label: { ru: 'Пожилые', ky: 'Улгайгандар', en: 'Elderly' } },
+  stroller:   { icon: 'baby-carriage', label: { ru: 'Мамы с колясками', ky: 'Бала арабалуу апалар', en: 'Parents with strollers' } }
 };
 
 window.STATUS = {
-  bad:  { color: '#ff4d6d', label: { ru: 'Недоступно', ky: 'Жеткиликсиз', en: 'Not accessible' } },
-  mid:  { color: '#ffb020', label: { ru: 'Есть трудности', ky: 'Кыйынчылыктар бар', en: 'Some difficulties' } },
-  good: { color: '#2ee6a6', label: { ru: 'Доступно', ky: 'Жеткиликтүү', en: 'Accessible' } }
+  bad:  { color: '#dc2626', label: { ru: 'Недоступно', ky: 'Жеткиликсиз', en: 'Not accessible' } },
+  mid:  { color: '#d97706', label: { ru: 'Есть трудности', ky: 'Кыйынчылыктар бар', en: 'Some difficulties' } },
+  good: { color: '#16a34a', label: { ru: 'Доступно', ky: 'Жеткиликтүү', en: 'Accessible' } }
 };
 
 window.COMMENT_TYPES = {
@@ -77,15 +77,15 @@ window.BB_latlng = function (loc) {
 /* Типы проблем — по ним считается статистика сообщений и работает фильтр «показать на карте».
    В точках выше: problems: ['noRamp', 'highCurb', …] */
 window.PROBLEMS = {
-  noRamp:     { icon: '♿', label: { ru: 'Нет пандуса / съезда', ky: 'Пандус / түшүүчү жол жок', en: 'No ramp' } },
-  steepRamp:  { icon: '📐', label: { ru: 'Слишком крутой пандус', ky: 'Пандус өтө тик', en: 'Ramp too steep' } },
-  highCurb:   { icon: '🧱', label: { ru: 'Высокий бордюр', ky: 'Бийик бордюр', en: 'High curb' } },
-  stairsOnly: { icon: '🪜', label: { ru: 'Только лестница', ky: 'Тепкич гана', en: 'Stairs only' } },
-  narrow:     { icon: '↔️', label: { ru: 'Узкий проход / дверь', ky: 'Тар өтмөк / эшик', en: 'Narrow path / door' } },
-  badSurface: { icon: '🕳️', label: { ru: 'Ямы, плохое покрытие', ky: 'Чуңкурлар, начар жол', en: 'Potholes, bad surface' } },
-  noHandrail: { icon: '🤚', label: { ru: 'Нет поручней', ky: 'Тутка жок', en: 'No handrails' } },
-  noBench:    { icon: '🪑', label: { ru: 'Нет скамейки / навеса', ky: 'Отургуч / күнкалкан жок', en: 'No bench / shelter' } },
-  noLight:    { icon: '💡', label: { ru: 'Плохое освещение', ky: 'Жарык начар', en: 'Poor lighting' } },
-  blocked:    { icon: '🚧', label: { ru: 'Проход заставлен', ky: 'Жол тосулган', en: 'Path blocked' } },
-  other:      { icon: '❓', label: { ru: 'Другое', ky: 'Башка', en: 'Other' } }
+  noRamp:     { icon: 'wheelchair-off', label: { ru: 'Нет пандуса / съезда', ky: 'Пандус / түшүүчү жол жок', en: 'No ramp' } },
+  steepRamp:  { icon: 'trending-up', label: { ru: 'Слишком крутой пандус', ky: 'Пандус өтө тик', en: 'Ramp too steep' } },
+  highCurb:   { icon: 'arrow-bar-to-up', label: { ru: 'Высокий бордюр', ky: 'Бийик бордюр', en: 'High curb' } },
+  stairsOnly: { icon: 'stairs', label: { ru: 'Только лестница', ky: 'Тепкич гана', en: 'Stairs only' } },
+  narrow:     { icon: 'arrows-horizontal', label: { ru: 'Узкий проход / дверь', ky: 'Тар өтмөк / эшик', en: 'Narrow path / door' } },
+  badSurface: { icon: 'road-off', label: { ru: 'Ямы, плохое покрытие', ky: 'Чуңкурлар, начар жол', en: 'Potholes, bad surface' } },
+  noHandrail: { icon: 'hand-off', label: { ru: 'Нет поручней', ky: 'Тутка жок', en: 'No handrails' } },
+  noBench:    { icon: 'armchair-off', label: { ru: 'Нет скамейки / навеса', ky: 'Отургуч / күнкалкан жок', en: 'No bench / shelter' } },
+  noLight:    { icon: 'bulb-off', label: { ru: 'Плохое освещение', ky: 'Жарык начар', en: 'Poor lighting' } },
+  blocked:    { icon: 'barrier-block', label: { ru: 'Проход заставлен', ky: 'Жол тосулган', en: 'Path blocked' } },
+  other:      { icon: 'dots-circle-horizontal', label: { ru: 'Другое', ky: 'Башка', en: 'Other' } }
 };

@@ -28,7 +28,7 @@
 
       /* Отзывы жителей — общие для всех */
       cloud.addComment = function (loc, c) {
-        var data = { placeId: loc.id, name: c.name, type: c.type, text: c.text, date: c.date, createdAt: cloud.stamp() };
+        var data = { placeId: loc.id, name: c.name, type: c.type, text: c.text, date: c.date, uid: BB.uid || '', createdAt: cloud.stamp() };
         (cloud.comments[loc.id] = cloud.comments[loc.id] || []).push(data);   // сразу показываем у себя
         return db.collection('comments').add(data);
       };

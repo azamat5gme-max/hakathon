@@ -3,29 +3,29 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Без барьеров — карта доступности</title>
-  <meta name="description" content="Карта мест, где людям на колясках, пожилым и родителям с колясками трудно пройти. Фото, адреса и отзывы жителей.">
+  <title>Infranalysis — карта доступности</title>
+  <meta name="description" content="Infranalysis — карта доступности города: места, где людям на колясках, пожилым и родителям с колясками трудно пройти. Фото, адреса, отзывы и проверка жителями.">
+  <meta name="theme-color" content="#ffffff">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Unbounded:wght@900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
   <!-- ?v=… — версия файлов: update-github.bat меняет её сам, чтобы браузеры сразу брали новые файлы -->
-  <link rel="stylesheet" href="css/intro.css?v=202611182319">
-  <link rel="stylesheet" href="css/style.css?v=202611182319">
-  <link rel="stylesheet" href="css/panel.css?v=202611182319">
-  <link rel="stylesheet" href="css/chat.css?v=202611182319">
-  <link rel="stylesheet" href="css/report.css?v=202611182319">
+  <link rel="stylesheet" href="css/intro.css?v=202611192314">
+  <link rel="stylesheet" href="css/style.css?v=202611192314">
+  <link rel="stylesheet" href="css/panel.css?v=202611192314">
+  <link rel="stylesheet" href="css/chat.css?v=202611192314">
+  <link rel="stylesheet" href="css/report.css?v=202611192314">
+  <link rel="stylesheet" href="css/rewards.css?v=202611192314">
 </head>
 <body>
 
   <!-- ============ ВЫБОР ЯЗЫКА ============ -->
   <div id="langScreen" class="lang">
-    <div class="lang__bg"><span></span><span></span><span></span></div>
     <div class="lang__box">
-      <div class="lang__logo">♿</div>
+      <div class="lang__logo"><span class="brand__mark" data-icon="map-2"></span><span class="lang__name">Infranalysis</span></div>
       <h1 class="lang__title" id="langTitle">Тилди тандаңыз</h1>
       <div class="lang__btns" id="langBtns"></div>
-      <p class="lang__brand">Тоскоолсуз · Без барьеров · Barrier-Free</p>
     </div>
   </div>
 
@@ -46,7 +46,7 @@
           <div class="fake__card"><b data-i18n="fC3t">Доступная среда</b><p data-i18n="fC3p">Раздел находится в разработке… с 2015 года.</p></div>
         </div>
         <div class="fake__loader"><span></span></div>
-        <div class="fake__alert" data-i18n="fAlert">⚠ Обнаружено вмешательство в систему…</div>
+        <div class="fake__alert" data-i18n="fAlert">Обнаружено вмешательство в систему…</div>
       </main>
       <footer class="fake__footer" data-i18n="fFooter">© 2026 Городской портал. Все права защищены.</footer>
     </div>
@@ -60,35 +60,46 @@
 
     <div class="intro__scan"></div>
     <button class="intro__hack" id="introHack" type="button" data-i18n="hackBtn">Следующий слайд ›</button>
-    <button class="intro__skip" id="introSkip" type="button" data-i18n="skip">Пропустить ⏭</button>
+    <button class="intro__skip" id="introSkip" type="button" data-i18n="skip">Пропустить</button>
   </div>
 
   <!-- ============ ОСНОВНОЙ САЙТ ============ -->
   <div class="app" id="app">
     <header class="topbar">
       <div class="brand">
-        <div class="brand__logo">♿</div>
-        <div>
-          <div class="brand__name" data-i18n="brand">Без барьеров</div>
+        <span class="brand__mark" data-icon="map-2"></span>
+        <div class="brand__text">
+          <div class="brand__name" data-i18n="brand">Infranalysis</div>
           <div class="brand__sub" id="districtName"></div>
         </div>
       </div>
       <div class="stats">
         <div class="stat"><b id="statPoints">0</b><span data-i18n="statPoints">точек</span></div>
         <div class="stat stat--bad"><b id="statIssues">0</b><span data-i18n="statIssues">проблем</span></div>
-        <div class="stat stat--good"><b id="statComments">0</b><span data-i18n="statComments">отзывов</span></div>
+        <div class="stat"><b id="statComments">0</b><span data-i18n="statComments">отзывов</span></div>
       </div>
       <div class="topbar__btns">
-        <button class="btn-ghost" id="statsBtn" type="button" data-i18n="statsBtn">📊 Статистика</button>
-        <button class="btn-ghost" id="langBtn" type="button" title="Language / Тил / Язык">🌐 RU</button>
-        <button class="btn-ghost" id="replayIntro" type="button" data-i18n="intro">▶ Интро</button>
+        <button class="tbtn tbtn--xp" id="rewardsBtn" type="button">
+          <span data-icon="trophy"></span><span id="xpLabel">0 XP</span><span class="tbtn__streak" id="streakLabel" hidden></span>
+        </button>
+        <button class="tbtn" id="statsBtn" type="button">
+          <span data-icon="chart-bar"></span><span class="tbtn__label" data-i18n="statsBtn">Статистика</span>
+        </button>
+        <button class="tbtn" id="langBtn" type="button" title="Language / Тил / Язык">
+          <span data-icon="language"></span><span id="langCode">RU</span>
+        </button>
+        <button class="tbtn" id="replayIntro" type="button">
+          <span data-icon="player-play"></span><span class="tbtn__label" data-i18n="intro">Интро</span>
+        </button>
       </div>
     </header>
 
     <div id="map" class="map"></div>
 
     <aside class="side" id="side">
-      <button class="side__toggle" id="sideToggle" type="button" data-i18n="sideToggle">☰ Фильтры и список</button>
+      <button class="side__toggle" id="sideToggle" type="button">
+        <span data-icon="adjustments-horizontal"></span><span data-i18n="sideToggle">Фильтры и список</span><span class="side__chev" data-icon="chevron-down"></span>
+      </button>
       <div class="side__body">
         <div class="side__section">
           <h3 data-i18n="show">Что показывать</h3>
@@ -110,48 +121,53 @@
     </aside>
 
     <section class="panel" id="panel" aria-hidden="true">
-      <button class="panel__close" id="panelClose" type="button" aria-label="✕">✕</button>
+      <button class="panel__close" id="panelClose" type="button" aria-label="Close"><span data-icon="x"></span></button>
       <div class="panel__scroll" id="panelContent"></div>
     </section>
 
     <!-- ============ ИИ-ПОМОЩНИК ============ -->
     <button class="bot-fab" id="botFab" type="button" aria-label="AI">
-      <span class="bot-fab__face">🤖</span><span class="bot-fab__label" data-i18n="botFab">Спросить ИИ</span>
+      <span data-icon="message-chatbot"></span><span class="bot-fab__label" data-i18n="botFab">Спросить ИИ</span>
     </button>
     <section class="bot" id="bot" aria-hidden="true">
       <header class="bot__head">
-        <div class="bot__avatar">🤖</div>
+        <span class="bot__avatar" data-icon="message-chatbot"></span>
         <div class="bot__who">
           <div class="bot__name" data-i18n="botName">ИИ-помощник</div>
           <div class="bot__status" id="botStatus"></div>
         </div>
-        <button class="bot__close" id="botClose" type="button" aria-label="✕">✕</button>
+        <button class="bot__close" id="botClose" type="button" aria-label="Close"><span data-icon="x"></span></button>
       </header>
       <div class="bot__msgs" id="botMsgs"></div>
       <div class="bot__quick" id="botQuick"></div>
       <form class="bot__form" id="botForm" autocomplete="off">
         <input id="botInput" type="text" data-i18n-ph="botPh" placeholder="Например: куда сходить с коляской?" maxlength="500">
-        <button type="submit" aria-label="➤">➤</button>
+        <button type="submit" aria-label="Send"><span data-icon="send"></span></button>
       </form>
     </section>
 
     <!-- ============ СООБЩИТЬ О БАРЬЕРЕ (своя метка) ============ -->
-    <button class="report-fab" id="reportFab" type="button" data-i18n="reportBtn">+ Сообщить о барьере</button>
+    <button class="report-fab" id="reportFab" type="button">
+      <span data-icon="map-pin-plus"></span><span data-i18n="reportBtn">Сообщить о барьере</span>
+    </button>
 
     <div class="toast" id="toast"></div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-  <script src="js/i18n.js?v=202611182319"></script>
-  <script src="js/i18n-reports.js?v=202611182319"></script>
-  <script src="js/cloud-config.js?v=202611182319"></script>
-  <script src="js/cloud.js?v=202611182319"></script>
-  <script src="js/data.js?v=202611182319"></script>
-  <script src="js/intro.js?v=202611182319"></script>
-  <script src="js/app.js?v=202611182319"></script>
-  <script src="js/panel.js?v=202611182319"></script>
-  <script src="js/bot.js?v=202611182319"></script>
-  <script src="js/report.js?v=202611182319"></script>
-  <script src="js/stats.js?v=202611182319"></script>
+  <script src="js/icons.js?v=202611192314"></script>
+  <script src="js/i18n.js?v=202611192314"></script>
+  <script src="js/i18n-reports.js?v=202611192314"></script>
+  <script src="js/i18n-rewards.js?v=202611192314"></script>
+  <script src="js/cloud-config.js?v=202611192314"></script>
+  <script src="js/cloud.js?v=202611192314"></script>
+  <script src="js/data.js?v=202611192314"></script>
+  <script src="js/intro.js?v=202611192314"></script>
+  <script src="js/app.js?v=202611192314"></script>
+  <script src="js/panel.js?v=202611192314"></script>
+  <script src="js/bot.js?v=202611192314"></script>
+  <script src="js/report.js?v=202611192314"></script>
+  <script src="js/stats.js?v=202611192314"></script>
+  <script src="js/rewards.js?v=202611192314"></script>
 </body>
 </html>

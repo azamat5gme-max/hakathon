@@ -1,9 +1,9 @@
-// Сервер сайта «Без барьеров» + ИИ-помощник на Claude.
+// Сервер сайта «Infranalysis» + ИИ-помощник на Claude.
 //
 // Запуск (PowerShell):
 //   npm install
-//   $env:ANTHROPIC_API_KEY = "ваш-ключ"     ← без ключа бот работает в офлайн-режиме
-//   npm start                                → откройте http://localhost:8080
+//   $env:ANTHROPIC_API_KEY = "ваш-ключ"     без ключа бот работает в офлайн-режиме
+//   npm start                                откройте http://localhost:8080
 import http from "node:http";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -32,7 +32,7 @@ async function loadData() {
   return sandbox.window;
 }
 
-// {ru, ky, en} → текст на нужном языке (или русский, если перевода нет)
+// {ru, ky, en} текст на нужном языке (или русский, если перевода нет)
 const pick = (v, lang) => (v && typeof v === "object" && !Array.isArray(v) ? (v[lang] ?? v.ru) : v);
 
 function buildSystemPrompt(w, lang) {
@@ -53,7 +53,7 @@ function buildSystemPrompt(w, lang) {
     };
   });
 
-  return `Ты — ИИ-помощник сайта «Без барьеров»: это карта доступности района «${L(w.CITY.district)}» (${L(w.CITY.name)}). Волонтёры обошли остановки, парки, государственные здания и общественные места и отметили барьеры для людей на колясках, пожилых людей и родителей с детскими колясками.
+  return `Ты — ИИ-помощник сайта «Infranalysis»: это карта доступности района «${L(w.CITY.district)}» (${L(w.CITY.name)}). Волонтёры обошли остановки, парки, государственные здания и общественные места и отметили барьеры для людей на колясках, пожилых людей и родителей с детскими колясками.
 
 Твоя задача — подсказать человеку, куда он может пойти удобно, какие места лучше обойти, и предложить доступную альтернативу рядом.
 
@@ -64,7 +64,7 @@ function buildSystemPrompt(w, lang) {
 - Учитывай, кто идёт: поле «барьер_для» показывает, кому место неудобно. Если для этой группы барьера нет, место ей подходит. Если неясно, кто идёт, дай общий совет и коротко спроси.
 - Расстояния оценивай по координатам примерно и говори «около N метров».
 - Отвечай коротко: 2–6 предложений или короткий список. Пиши простыми словами — среди пользователей много пожилых людей. Без заголовков и таблиц; **жирным** выделяй только названия мест.
-- Как оставить отзыв: нажать на метку на карте → внизу карточки форма отзывов жителей.
+- Как оставить отзыв: нажать на метку на карте внизу карточки форма отзывов жителей.
 
 Данные карты (JSON):
 ${JSON.stringify(places)}`;
@@ -119,7 +119,7 @@ async function addReport(body) {
   return report;
 }
 
-/* ---------- Проверка: 2 других человека подтвердили → ИИ решает, публиковать ли ---------- */
+/* ---------- Проверка: 2 других человека подтвердили ИИ решает, публиковать ли ---------- */
 const NEED_CONFIRMS = 2;
 const isPublic = (r) => !r.review || r.review === "approved";
 const BAD_WORDS = /(хуй|хуе|пизд|ебан|ебат|бля|сука|мудак|долбо[её]б|fuck|shit|bitch|cunt)/i;
@@ -191,7 +191,7 @@ async function confirmReport(id, uid) {
     r.confirms = r.confirms || [];
     if (r.confirms.includes(uid)) { result = { status: 409, error: "already_confirmed" }; return; }
     r.confirms.push(uid);
-    if (r.confirms.length >= NEED_CONFIRMS) {                          // хватает подтверждений → решает ИИ
+    if (r.confirms.length >= NEED_CONFIRMS) {                          // хватает подтверждений решает ИИ
       const verdict = await moderate(r);
       r.review = verdict.approve ? "approved" : "rejected";
       r.ai = { ...verdict, at: new Date().toISOString() };
@@ -251,9 +251,9 @@ function cleanMessages(raw) {
 }
 
 const REFUSAL = {
-  ru: "Извините, с этим я помочь не могу. Спросите меня о местах на карте 🙂",
-  ky: "Кечириңиз, буга жардам бере албайм. Картадагы жерлер тууралуу сураңыз 🙂",
-  en: "Sorry, I can’t help with that. Ask me about places on the map 🙂",
+  ru: "Извините, с этим я помочь не могу. Спросите меня о местах на карте",
+  ky: "Кечириңиз, буга жардам бере албайм. Картадагы жерлер тууралуу сураңыз",
+  en: "Sorry, I can’t help with that. Ask me about places on the map",
 };
 
 async function askClaude(messages, lang) {
@@ -352,6 +352,6 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`«Без барьеров» запущен: http://localhost:${PORT}`);
+  console.log(`«Infranalysis» запущен: http://localhost:${PORT}`);
   console.log(aiOn ? `ИИ-помощник: Claude (${MODEL})` : "ИИ-помощник: офлайн-режим (нет ключа ANTHROPIC_API_KEY)");
 });

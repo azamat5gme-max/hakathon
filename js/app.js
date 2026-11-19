@@ -68,9 +68,9 @@
     var cls = 'pin pin--' + st + (loc.user ? ' pin--user' : '') + (loc._pop ? ' is-pop' : '') +
       (loc.id === state.activeId ? ' is-active' : '') + (extra ? ' ' + extra : '');
     var html = '<div class="' + cls + '" style="--c:' + S[st].color + ';--d:' + (delay || 0) + 's">' +
-      '<span class="pin__pulse"></span><span class="pin__body"><span class="pin__icon">' + C[loc.category].icon + '</span></span>' +
-      (loc.user ? '<span class="pin__user">👤</span>' : '') + '</div>';
-    return L.divIcon({ className: 'pin-wrap', html: html, iconSize: [44, 54], iconAnchor: [22, 48], tooltipAnchor: [0, -46] });
+      '<span class="pin__pulse"></span><span class="pin__body">' + icon(C[loc.category].icon) + '</span>' +
+      (loc.user ? '<span class="pin__user">' + icon('user') + '</span>' : '') + '</div>';
+    return L.divIcon({ className: 'pin-wrap', html: html, iconSize: [36, 46], iconAnchor: [18, 42], tooltipAnchor: [0, -40] });
   }
   function isVisible(loc) {
     return state.cats.has(loc.category) && state.statuses.has(BB.effStatus(loc)) &&
@@ -114,7 +114,7 @@
     if (state.problem) { state.cats = new Set(Object.keys(C)); state.statuses = new Set(Object.keys(S)); }
     renderChips(); applyFilters();
     if (!state.problem) return;
-    BB.toast(P[p].icon + ' ' + t('showing', { label: T(P[p].label) }));
+    BB.toast(t('showing', { label: T(P[p].label) }));
     var pts = LOC.filter(isVisible).map(BB_latlng);
     if (pts.length) {
       var mob = isMobile();
@@ -166,20 +166,20 @@
     var cat = $('catChips'), grp = $('groupChips'), leg = $('legend');
     cat.innerHTML = ''; grp.innerHTML = ''; leg.innerHTML = '';
     if (state.problem) {                                                   // активный фильтр по проблеме — с крестиком
-      var pc = chip(P[state.problem].icon + ' ' + BB.esc(t('showing', { label: T(P[state.problem].label) })) + ' ✕', true,
+      var pc = chip(icon(P[state.problem].icon) + BB.esc(t('showing', { label: T(P[state.problem].label) })) + icon('x'), true,
         function () { BB.setProblem(null); });
       pc.classList.add('chip--problem');
       cat.appendChild(pc);
     }
     Object.keys(C).forEach(function (k) {
-      cat.appendChild(chip(C[k].icon + ' ' + BB.esc(T(C[k].label)), state.cats.has(k), function () {
+      cat.appendChild(chip(icon(C[k].icon) + BB.esc(T(C[k].label)), state.cats.has(k), function () {
         state.cats.has(k) ? state.cats.delete(k) : state.cats.add(k);
         renderChips(); applyFilters();
       }));
     });
-    grp.appendChild(chip('👥 ' + t('all'), !state.group, function () { setGroup(null); }));
+    grp.appendChild(chip(icon('users') + t('all'), !state.group, function () { setGroup(null); }));
     Object.keys(G).forEach(function (k) {
-      grp.appendChild(chip(G[k].icon + ' ' + BB.esc(T(G[k].label)), state.group === k, function () { setGroup(state.group === k ? null : k); }));
+      grp.appendChild(chip(icon(G[k].icon) + BB.esc(T(G[k].label)), state.group === k, function () { setGroup(state.group === k ? null : k); }));
     });
     Object.keys(S).forEach(function (k) {
       var b = document.createElement('button');
@@ -196,7 +196,7 @@
   function setGroup(g) {
     state.group = g;
     renderChips(); applyFilters(true);
-    if (g) BB.toast(G[g].icon + ' ' + t('groupToast', { g: T(G[g].label) }));
+    if (g) BB.toast(t('groupToast', { g: T(G[g].label) }));
   }
   BB.setGroup = setGroup;
 
@@ -210,13 +210,14 @@
     ul.innerHTML = list.length ? '' : '<li class="plist__empty">' + t(LOC.length ? 'empty' : 'noPlaces') + '</li>';
     list.forEach(function (loc, i) {
       var st = BB.effStatus(loc), li = document.createElement('li'), n = BB.issues(loc).length;
-      li.style.animationDelay = (firstList ? 500 + i * 45 : i * 30) + 'ms';
+      li.style.animationDelay = (firstList ? 300 + i * 30 : i * 20) + 'ms';
+      li.style.setProperty('--c', S[st].color);
       if (loc.id === state.activeId) li.className = 'is-active';
       li.dataset.id = loc.id;
-      li.innerHTML = '<span class="plist__icon">' + C[loc.category].icon + '</span>' +
+      li.innerHTML = '<span class="plist__icon">' + icon(C[loc.category].icon) + '</span>' +
         '<span class="plist__text"><div class="plist__title">' + BB.esc(T(loc.title)) + '</div>' +
-        '<div class="plist__meta"><span class="dot" style="--c:' + S[st].color + ';display:inline-block;width:8px;height:8px;margin-right:5px"></span>' +
-        BB.esc(T(S[st].label)) + (n ? ' · ' + t('problemsN', { n: n }) : '') + '</div></span>';
+        '<div class="plist__meta"><span class="dot"></span>' +
+        BB.esc(T(S[st].label)) + (n ? ' · ' + t('problemsN', { n: n }) : '') + (loc.user ? ' · ' + icon('user') : '') + '</div></span>';
       li.addEventListener('click', function () { BB.openPlace(loc.id); });
       ul.appendChild(li);
     });
@@ -259,9 +260,10 @@
 
   /* ---------- Счётчики ---------- */
   function countUp(el, to, animate) {
-    if (!animate) { el.textContent = to; return; }
-    var t0 = performance.now(), dur = 1400;
+    if (!animate) { el._run = (el._run || 0) + 1; el.textContent = to; return; }
+    var t0 = performance.now(), dur = 1400, run = el._run = (el._run || 0) + 1;   // новое число отменяет старую анимацию
     (function step(now) {
+      if (el._run !== run) return;
       var k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
       el.textContent = Math.round(to * e);
       if (k < 1) requestAnimationFrame(step);
@@ -286,7 +288,7 @@
   function applyLang() {
     $('districtName').textContent = T(CITY.district) + ' · ' + T(CITY.name);
     var L = LANGS.filter(function (x) { return x.code === BBI.lang(); })[0];
-    $('langBtn').textContent = '🌐 ' + (L ? L.short : 'RU');
+    $('langCode').textContent = L ? L.short : 'RU';
     LOC.forEach(function (loc) { if (markers[loc.id]) markers[loc.id].setTooltipContent(BB.esc(T(loc.title))); });
     renderChips(); renderList();
     if (state.activeId && BB.renderPanel) BB.renderPanel(byId[state.activeId]);

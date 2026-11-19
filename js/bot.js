@@ -37,7 +37,7 @@
         b.type = 'button'; b.className = 'msg__place';
         b.style.setProperty('--c', S[BB.effStatus(loc, ctx.group)].color);
         b.style.setProperty('--i', i);
-        b.innerHTML = '<i></i>' + C[loc.category].icon + ' ' + BB.esc(T(loc.title));
+        b.innerHTML = icon(C[loc.category].icon) + BB.esc(T(loc.title));
         b.addEventListener('click', function () { if (isMobile()) close(); BB.openPlace(id); });
         wrap.appendChild(b);
       });
@@ -174,7 +174,7 @@
     var lines = [t(group ? 'placeLineWho' : 'placeLine', vars)];
     if (st !== 'good' && issues.length) lines.push(t('wrongLine', { list: issues.map(lc).join('; ') }));
     if (st === 'good' && good.length) lines.push(t('goodLine', { list: good.map(lc).join(', ') }));
-    if (loc.tip) lines.push('💡 ' + T(loc.tip));
+    if (loc.tip) lines.push(T(loc.tip));
     if (st !== 'good') {
       var alt = nearestGood(loc, group);
       if (alt) { lines.push(t('altLine', { title: T(alt.loc.title), d: alt.d })); ids.push(alt.loc.id); }
@@ -239,13 +239,13 @@
       var r = st.rows.filter(function (x) { return x.key === prob; })[0], label = T(P[prob].label);
       if (!r || !r.n) return { text: t('botStatNone', { label: label }) };
       if (BB.setProblem) BB.setProblem(prob);
-      return { text: t('botStatOne', { icon: P[prob].icon, label: label, n: r.n, v: r.v, u: r.u }) + '\n' + t('botStatMore'), places: r.ids };
+      return { text: t('botStatOne', { icon: '', label: label, n: r.n, v: r.v, u: r.u }).trim() + '\n' + t('botStatMore'), places: r.ids };
     }
     var top = st.rows.filter(function (x) { return x.n; }).slice(0, 5);
     if (!top.length) return { text: t('noPlaces') };                        // пока нет ни одного сообщения
     var lines = [t('botStatHead', { n: st.barriers, u: st.users })];
     top.forEach(function (x) {
-      lines.push('• ' + P[x.key].icon + ' ' + T(P[x.key].label) + ' — ' + x.n);
+      lines.push('• ' + T(P[x.key].label) + ' — ' + x.n);
     });
     return { text: lines.join('\n') };
   }
